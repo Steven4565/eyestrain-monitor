@@ -151,21 +151,29 @@ class App:
         self.Menu.grid_columnconfigure(2, weight=1)
 
         self.ActivityButton = MenuButton(self.Menu, 'Activity', 'Helvetica 13 bold',
-                                         lambda: print('test1')).grid(column=0, row=0)
+                                         lambda: self.note.select(0)).grid(column=0, row=0)
         self.StartButton = MenuButton(self.Menu, 'Start', 'Helvetica 13 bold',
-                                      lambda: print('test2')).grid(column=1, row=0)
+                                      lambda: self.note.select(1)).grid(column=1, row=0)
         self.SettingsButton = MenuButton(self.Menu, 'Settings', 'Helvetica 13 bold',
-                                         lambda: print('test3')).grid(column=2, row=0)
+                                         lambda: self.note.select(2)).grid(column=2, row=0)
 
-        self.style = Style().layout('TNotebook.Tab', [])  # turn off tabs
-        self.note = Notebook(self.root_tk,  width=1000,
-                             height=425)
+        noteStyle = Style()
+        noteStyle.theme_use('default')
+        noteStyle.layout('TNotebook.Tab', [])
+        noteStyle.configure("TNotebook", background="#2a2d2e", borderwidth=0)
+        noteStyle.configure(
+            "TNotebook.Tab", background="#2a2d2e", borderwidth=0)
+        noteStyle.map("TNotebook", background=[("selected", "#2a2d2e")])
+
+        self.note = Notebook(self.root_tk)
+        self.note.grid(column=0, row=1, stick="NEWS")
 
         # =========== Activity Page ===========
         ActivityPage = customtkinter.CTkFrame(master=self.note,
                                               width=200,
                                               height=200,
                                               corner_radius=10)
+        customtkinter.CTkLabel(ActivityPage, text="activity page").grid()
         self.note.add(ActivityPage)
 
         # =========== Start Page ===========
@@ -174,6 +182,7 @@ class App:
                                            width=200,
                                            height=200,
                                            corner_radius=10)
+        customtkinter.CTkLabel(StartPage, text="start page").grid()
         self.note.add(StartPage)
 
         # =========== Settings Page ===========
@@ -182,6 +191,7 @@ class App:
                                               width=200,
                                               height=200,
                                               corner_radius=10)
+        customtkinter.CTkLabel(SettingsPage, text="Settings page").grid()
         self.note.add(SettingsPage)
 
         # Create a canvas that can fit the above video source size
