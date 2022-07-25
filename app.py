@@ -141,11 +141,14 @@ class App:
         self.root_tk.title(window_title)
         self.root_tk.grid_rowconfigure(1, weight=1)
         self.root_tk.grid_columnconfigure(0, weight=1)
-        self.root_tk.grid_columnconfigure(1, weight=1)
-        self.root_tk.grid_columnconfigure(2, weight=1)
 
-        self.Menu = customtkinter.CTkFrame(master=self.root_tk,
-                                           corner_radius=0).grid(row=0, column=3, sticky="NEWS")
+        self.Menu = customtkinter.CTkFrame(
+            master=self.root_tk, width=800, height=75, corner_radius=0)
+        self.Menu.grid(row=0, column=0, sticky="NEWS")
+
+        self.Menu.grid_columnconfigure(0, weight=1)
+        self.Menu.grid_columnconfigure(1, weight=1)
+        self.Menu.grid_columnconfigure(2, weight=1)
 
         self.ActivityButton = MenuButton(self.Menu, 'Activity', 'Helvetica 13 bold',
                                          lambda: print('test1')).grid(column=0, row=0)
@@ -187,7 +190,7 @@ class App:
         # self.canvas.pack()
 
         # Creates a custom routine based on the delay
-        self.delay = 30  # 33ms delay for 30 fps
+        # self.delay = 30  # 33ms delay for 30 fps
         # self.update() // TODO: add a toggle for the camera
 
         self.root_tk.mainloop()
