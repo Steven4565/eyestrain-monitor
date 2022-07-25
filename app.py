@@ -143,7 +143,7 @@ class App:
         self.root_tk.grid_columnconfigure(0, weight=1)
 
         self.Menu = customtkinter.CTkFrame(
-            master=self.root_tk, width=800, height=75, corner_radius=0)
+            master=self.root_tk, width=800, height=75, corner_radius=0, fg_color="#212325")
         self.Menu.grid(row=0, column=0, sticky="NEWS")
 
         self.Menu.grid_columnconfigure(0, weight=1)
@@ -160,12 +160,12 @@ class App:
         noteStyle = Style()
         noteStyle.theme_use('default')
         noteStyle.layout('TNotebook.Tab', [])
-        noteStyle.configure("TNotebook", background="#2a2d2e", borderwidth=0)
+        noteStyle.configure("TNotebook", background="#212325", borderwidth=0)
         noteStyle.configure(
-            "TNotebook.Tab", background="#2a2d2e", borderwidth=0)
-        noteStyle.map("TNotebook", background=[("selected", "#2a2d2e")])
+            "TNotebook.Tab", background="#212325", borderwidth=0)
+        noteStyle.map("TNotebook", background=[("selected", "#212325")])
 
-        self.note = Notebook(self.root_tk)
+        self.note = Notebook(self.root_tk, padding=25)
         self.note.grid(column=0, row=1, stick="NEWS")
 
         # =========== Activity Page ===========
