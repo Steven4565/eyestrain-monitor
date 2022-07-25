@@ -1,9 +1,7 @@
-from customWidgets import *
+# from source.customWidgets import *
 import customtkinter
 from tkinter import *
 from tkinter.ttk import Notebook, Style
-import sys
-sys.path.append("..")
 
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
@@ -22,9 +20,9 @@ frame = customtkinter.CTkFrame(master=note,
 button = customtkinter.CTkButton(master=frame, command=lambda: note.select(1))
 button.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-cbutton = MenuButton(frame, 'hello', 'Helvetica 13 bold',
-                     lambda: print('test'))
-cbutton.pack()
+# cbutton = MenuButton(frame, 'hello', 'Helvetica 13 bold',
+#                      lambda: print('test'))
+# cbutton.pack()
 
 note.add(frame)
 

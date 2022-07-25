@@ -11,12 +11,15 @@ import tensorflow.keras as keras
 import pygame
 from pygame import mixer
 
-from rotated_rect_crop import *
+from source.rotated_rect_crop import *
 
 # Tkinter imports
 import tkinter as tk
+from tkinter.ttk import Notebook, Style
 import PIL.Image
 import PIL.ImageTk
+import customtkinter
+from source.customWidgets import *
 
 
 MAX_SESSION = 1200  # max screen time in seconds
@@ -28,6 +31,7 @@ FONT_SIZE = 1
 FONT_COLOR = (0, 0, 255)
 
 SHORT_VOICEOVER = True
+
 
 model = tf.keras.models.Sequential([
     # The first convolution
@@ -84,10 +88,8 @@ faceMesh = mp.solutions.face_mesh.FaceMesh(
 landmark_points = np.array([130, 133, 145, 159, 263, 362, 374, 386])
 
 
-# Tkinter -------------------------------------
-
 class App:
-    def __init__(self, window, window_title, video_source=1):
+    def __init__(self, window_title, video_source=0):
 
         # ============================== AI vars ==============================
 
@@ -124,27 +126,71 @@ class App:
         self.show_debug = True
 
         # ============================= GUI stuff ==============================
-        self.window = window
-        self.window.title(window_title)
         self.video_source = video_source
 
-        # open video source (by default this will try to open the computer webcam)
+        # open video source
         self.vid = VideoCapture(self.video_source)
 
-        # Create a canvas that can fit the above video source size
-        self.canvas = tk.Canvas(
-            window, width=self.vid.width, height=self.vid.height)
-        self.canvas.pack()
+        # =========== Main Window ===========
 
-        # quit button
-        self.btn_quit = tk.Button(window, text='QUIT', command=quit)
-        self.btn_quit.pack(side=tk.LEFT)
+        customtkinter.set_appearance_mode("System")
+        customtkinter.set_default_color_theme("blue")
+
+        self.root_tk = customtkinter.CTk()
+        self.root_tk.geometry("800x500")
+        self.root_tk.title(window_title)
+        self.root_tk.grid_rowconfigure(1, weight=1)
+        self.root_tk.grid_columnconfigure(0, weight=1)
+        self.root_tk.grid_columnconfigure(1, weight=1)
+        self.root_tk.grid_columnconfigure(2, weight=1)
+
+        self.Menu = customtkinter.CTkFrame(master=self.root_tk,
+                                           corner_radius=0).grid(row=0, column=3, sticky="NEWS")
+
+        self.ActivityButton = MenuButton(self.Menu, 'Activity', 'Helvetica 13 bold',
+                                         lambda: print('test1')).grid(column=0, row=0)
+        self.StartButton = MenuButton(self.Menu, 'Start', 'Helvetica 13 bold',
+                                      lambda: print('test2')).grid(column=1, row=0)
+        self.SettingsButton = MenuButton(self.Menu, 'Settings', 'Helvetica 13 bold',
+                                         lambda: print('test3')).grid(column=2, row=0)
+
+        self.style = Style().layout('TNotebook.Tab', [])  # turn off tabs
+        self.note = Notebook(self.root_tk,  width=1000,
+                             height=425)
+
+        # =========== Activity Page ===========
+        ActivityPage = customtkinter.CTkFrame(master=self.note,
+                                              width=200,
+                                              height=200,
+                                              corner_radius=10)
+        self.note.add(ActivityPage)
+
+        # =========== Start Page ===========
+
+        StartPage = customtkinter.CTkFrame(master=self.note,
+                                           width=200,
+                                           height=200,
+                                           corner_radius=10)
+        self.note.add(StartPage)
+
+        # =========== Settings Page ===========
+
+        SettingsPage = customtkinter.CTkFrame(master=self.note,
+                                              width=200,
+                                              height=200,
+                                              corner_radius=10)
+        self.note.add(SettingsPage)
+
+        # Create a canvas that can fit the above video source size
+        # self.canvas = tk.Canvas(
+        #     window, width=self.vid.width, height=self.vid.height)
+        # self.canvas.pack()
 
         # Creates a custom routine based on the delay
         self.delay = 30  # 33ms delay for 30 fps
         # self.update() // TODO: add a toggle for the camera
 
-        self.window.mainloop()
+        self.root_tk.mainloop()
 
     def update(self):
         success, frame = self.vid.get_frame()
@@ -336,7 +382,7 @@ class VideoCapture:
 
 
 def main():
-    App(tk.Tk(), 'Video Recorder', CAMERA_INDEX)
+    App('Eye Strain Monitor', CAMERA_INDEX)
 
 
 main()
