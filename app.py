@@ -7,6 +7,8 @@ import mediapipe as mp
 import tensorflow as tf
 import tensorflow.keras as keras
 
+import videoio
+
 import pygame
 from pygame import mixer
 
@@ -139,7 +141,7 @@ class App:
         self.btn_quit.pack(side=tk.LEFT)
 
         # Creates a custom routine based on the delay
-        self.delay = 30  # 33ms delay for 30 fps
+        self.delay = 17  # 33ms delay for 30 fps
         self.update()
 
         self.window.mainloop()
@@ -172,8 +174,8 @@ class App:
             if (self.since_face_left_frame and time.time() - self.since_face_left_frame > 10):
                 self.write_to_file(
                     [[time.strftime('%H:%M', time.localtime()), 'break', round(time.time() - self.since_face_left_frame)]])
-                print([time.strftime('%H:%M', time.localtime()), 'break',
-                      round(time.time() - self.since_face_left_frame)])
+                # print([time.strftime('%H:%M', time.localtime()), 'break',
+                #       round(time.time() - self.since_face_left_frame)])
             self.since_face_left_frame = None
             if (not self.since_face_entered_frame):
                 self.since_face_entered_frame = time.time()
@@ -241,7 +243,7 @@ class App:
                     continue
 
                 # predict the blink
-                predictions = model.predict(np.array(processed_images))
+                predictions = model(np.array(processed_images), training=False)
                 self.prev_blink = self.blinked
                 for prediction in predictions:
                     if np.ceil(prediction):
@@ -266,8 +268,8 @@ class App:
         if (len(self.blink_count) > 5):
             self.write_to_file(
                 [[time.strftime('%H:%M', time.localtime()), 'session', *self.blink_count[0:-1]]])
-            print([time.strftime('%H:%M', time.localtime()),
-                  'session', *self.blink_count[0:-1]])
+            # print([time.strftime('%H:%M', time.localtime()),
+            #       'session', *self.blink_count[0:-1]])
             self.blink_count = [0]
 
         # blink duration
@@ -315,6 +317,7 @@ class VideoCapture:
         # set video source width and height
         self.vid.set(3, res[0])
         self.vid.set(4, res[1])
+        self.vid.set(cv.CAP_PROP_FPS, 60)
 
         # Get video source width and height
         self.width, self.height = res
@@ -327,7 +330,7 @@ class VideoCapture:
             return (success, None)
 
         if not success:
-            print("Ignoring empty camera frame.")
+            # print("Ignoring empty camera frame.")
             return (success, None)
 
         return (success, image)
@@ -340,7 +343,7 @@ class VideoCapture:
 
 
 def main():
-    App(tk.Tk(), 'Video Recorder', 1)
+    App(tk.Tk(), 'Video Recorder', 2)
 
 
 main()
