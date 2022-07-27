@@ -1,4 +1,6 @@
 import csv
+import datetime
+import time
 
 data = [1, 2, 3, 5, 3]
 
@@ -13,4 +15,4 @@ data = [1, 2, 3, 5, 3]
 #         print(line)
 
 data2 = data[0:-1]
-print([['test', *data2]])
+print([[time.strftime('%H:%M', time.localtime()), 'test', *data2]])

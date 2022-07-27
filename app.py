@@ -171,8 +171,9 @@ class App:
         else:
             if (self.since_face_left_frame and time.time() - self.since_face_left_frame > 10):
                 self.write_to_file(
-                    [['break', round(time.time() - self.since_face_left_frame)]])
-                print(['break', round(time.time() - self.since_face_left_frame)])
+                    [[time.strftime('%H:%M', time.localtime()), 'break', round(time.time() - self.since_face_left_frame)]])
+                print([time.strftime('%H:%M', time.localtime()), 'break',
+                      round(time.time() - self.since_face_left_frame)])
             self.since_face_left_frame = None
             if (not self.since_face_entered_frame):
                 self.since_face_entered_frame = time.time()
@@ -263,8 +264,10 @@ class App:
 
         # write session data to file
         if (len(self.blink_count) > 5):
-            self.write_to_file([['session', *self.blink_count[0:-1]]])
-            print(['session', *self.blink_count[0:-1]])
+            self.write_to_file(
+                [[time.strftime('%H:%M', time.localtime()), 'session', *self.blink_count[0:-1]]])
+            print([time.strftime('%H:%M', time.localtime()),
+                  'session', *self.blink_count[0:-1]])
             self.blink_count = [0]
 
         # blink duration
