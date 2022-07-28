@@ -1,5 +1,6 @@
+from tkinter import Label
 import customtkinter
-from source.customWidgets import MenuButton
+from source.customWidgets import MenuButton, MenuButtonTemplate
 from tkinter.ttk import Notebook, Style
 
 
@@ -37,12 +38,23 @@ class AppGui:
         self.Menu.grid_columnconfigure(1, weight=1)
         self.Menu.grid_columnconfigure(2, weight=1)
 
-        self.ActivityButton = MenuButton(self.Menu, "Activity", self._menu_font,
-                                         lambda: self.note.select(0)).grid(column=0, row=0)
-        self.StartButton = MenuButton(self.Menu, "Start", self._menu_font,
-                                      lambda: self.note.select(1)).grid(column=1, row=0)
-        self.SettingsButton = MenuButton(self.Menu, "Settings", self._menu_font,
-                                         lambda: self.note.select(2)).grid(column=2, row=0)
+        menu_btn = MenuButtonTemplate(self.Menu, self._menu_font)
+
+        self.ActivityButton = menu_btn("Activity", lambda: self.note.select(0), selected=True)
+        self.StartButton = menu_btn("Start", lambda: self.note.select(1))
+        self.SettingsButton = menu_btn("Settings", lambda: self.note.select(2))
+
+        # TODO: Cleanup this UI thinggy.
+        button_maps: list[Label] = [self.ActivityButton, self.StartButton, self.SettingsButton]
+        for i in range(len(button_maps)):
+            button_maps[i].grid(column=i, row=0)
+        last_tab: int = 0
+        def onTabChange(e):
+            nonlocal last_tab
+            tab_id = e.widget.index(e.widget.select())
+            button_maps[tab_id].event_generate("<<MenuSelect>>")
+            button_maps[last_tab].event_generate("<<MenuDeSelect>>")
+            last_tab = tab_id
 
         noteStyle = Style()
         noteStyle.theme_use("default")
@@ -54,6 +66,8 @@ class AppGui:
 
         self.note = Notebook(self.root_tk, padding=25)
         self.note.grid(column=0, row=1, stick="NEWS")
+
+        self.note.bind("<<NotebookTabChanged>>", onTabChange)
 
     def init_pages(self):
 
