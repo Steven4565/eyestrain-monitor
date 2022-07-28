@@ -1,41 +1,45 @@
-# from source.customWidgets import *
-import customtkinter
 from tkinter import *
-from tkinter.ttk import Notebook, Style
+from tkinter import ttk
 
-customtkinter.set_appearance_mode("System")
-customtkinter.set_default_color_theme("blue")
+root = Tk()
+root.title('Learn To Code at Codemy.com')
+root.geometry("500x400")
 
-root_tk = customtkinter.CTk()  # create CTk window like the Tk window
-root_tk.geometry("400x240")
+# Create A Main Frame
+main_frame = Frame(root)
+main_frame.pack(fill=BOTH, expand=1)
 
-style = Style()
-style.layout('TNotebook.Tab', [])  # turn off tabs
-note = Notebook(root_tk)
+# Create A Canvas
+my_canvas = Canvas(main_frame)
+my_canvas.pack(side=LEFT, fill=BOTH, expand=1)
 
-# frame = customtkinter.CTkFrame(master=note,
-#                                width=200,
-#                                height=200,
-#                                corner_radius=10)
-# button = customtkinter.CTkButton(master=frame, command=lambda: note.select(1))
-# button.place(relx=0.5, rely=0.5, anchor=CENTER)
+# Add A Scrollbar To The Canvas
+my_scrollbar = ttk.Scrollbar(
+    main_frame, orient=VERTICAL, command=my_canvas.yview)
+my_scrollbar.pack(side=RIGHT, fill=Y)
 
-# cbutton = MenuButton(frame, 'hello', 'Helvetica 13 bold',
-#                      lambda: print('test'))
-# cbutton.pack()
+# Configure The Canvas
+my_canvas.configure(yscrollcommand=my_scrollbar.set)
+my_canvas.bind('<Configure>', lambda e: my_canvas.configure(
+    scrollregion=my_canvas.bbox("all")))
 
-# note.add(frame)
+# Create ANOTHER Frame INSIDE the Canvas
+second_frame = Frame(my_canvas)
 
-# frame2 = customtkinter.CTkFrame(master=note,
-#                                 width=200,
-#                                 height=200,
-#                                 corner_radius=10)
-# button2 = customtkinter.CTkButton(
-#     master=frame2, command=lambda: note.select(0))
-# button2.pack()
-# note.add(frame2)
+# Add that New frame To a Window In The Canvas
+my_canvas.create_window((0, 0), window=second_frame, anchor="nw")
 
-# note.pack(expand=1, fill='both', padx=5, pady=5)
+for thing in range(100):
+    Button(second_frame, text=f'Button {thing} Yo!').grid(
+        row=thing, column=0, pady=10, padx=10)
+
+my_label = Label(second_frame, text="It's Friday Yo!").grid(row=3, column=2)
 
 
-root_tk.mainloop()
+def _on_mousewheel(event):
+    my_canvas.yview_scroll(round(-1*(event.delta/120)), "units")
+
+
+my_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+root.mainloop()

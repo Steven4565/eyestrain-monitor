@@ -150,11 +150,11 @@ class App:
         self.Menu.grid_columnconfigure(1, weight=1)
         self.Menu.grid_columnconfigure(2, weight=1)
 
-        self.ActivityButton = MenuButton(self.Menu, 'Activity', 'Helvetica 13 bold',
+        self.ActivityButton = MenuButton(self.Menu, 'Activity', 'Helvetica 16 bold',
                                          lambda: self.note.select(0)).grid(column=0, row=0)
-        self.StartButton = MenuButton(self.Menu, 'Start', 'Helvetica 13 bold',
+        self.StartButton = MenuButton(self.Menu, 'Start', 'Helvetica 16 bold',
                                       lambda: self.note.select(1)).grid(column=1, row=0)
-        self.SettingsButton = MenuButton(self.Menu, 'Settings', 'Helvetica 13 bold',
+        self.SettingsButton = MenuButton(self.Menu, 'Settings', 'Helvetica 16 bold',
                                          lambda: self.note.select(2)).grid(column=2, row=0)
 
         noteStyle = Style()
@@ -191,17 +191,24 @@ class App:
                                               width=200,
                                               height=200,
                                               corner_radius=10)
-        customtkinter.CTkLabel(SettingsPage, text="Settings page").grid()
         self.note.add(SettingsPage)
 
         # Create a canvas that can fit the above video source size
-        # self.canvas = tk.Canvas(
-        #     window, width=self.vid.width, height=self.vid.height)
-        # self.canvas.pack()
+        self.scrollbar = customtkinter.CTkScrollbar()
+        self.canvas = customtkinter.CTkCanvas(
+            StartPage, width=self.vid.width, height=self.vid.height)
+        self.canvas.grid(column=0, row=0, sticky="news")
+
+        self.scrollbar = customtkinter.CTkScrollbar(
+            StartPage, command=self.canvas.yview)
+        self.scrollbar.grid(row=0, column=1, sticky="ns")
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
 
         # Creates a custom routine based on the delay
-        # self.delay = 30  # 33ms delay for 30 fps
-        # self.update() // TODO: add a toggle for the camera
+        self.delay = 30  # 33ms delay for 30 fps
+        self.update()
 
         self.root_tk.mainloop()
 
@@ -214,7 +221,7 @@ class App:
             self.photo = PIL.ImageTk.PhotoImage(
                 image=PIL.Image.fromarray(self.imgRGB))  # process the image here
             self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
-        self.window.after(self.delay, self.update)
+        self.root_tk.after(self.delay, self.update)
 
     def process_frame(self, frame):
         self.imgRGB = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
