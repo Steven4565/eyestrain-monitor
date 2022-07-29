@@ -10,14 +10,18 @@ import time
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
+import tensorflow as tf
 import tensorflow.keras as keras
+from source.Sounds import *
+
+from source.rotated_rect_crop import *
+from source.VideoCapture import *
+from source.AppGui import *
 
 # Tkinter imports
 import tkinter as tk
-from tkinter.ttk import Notebook, Style
 import PIL.Image
 import PIL.ImageTk
-import customtkinter
 from source.customWidgets import *
 
 
@@ -27,7 +31,7 @@ np_config.enable_numpy_behavior()
 MAX_SESSION = 1200  # max screen time in seconds
 MIN_BREAK = 20  # min break (minimum face not detected time for timer to reset)
 MAX_BLINK_INTERVAL = 10  # max time for not blinking in seconds
-CAMERA_INDEX = 1
+CAMERA_INDEX = 0
 
 # change the height value of IMG_SIZE to change AI threshold
 IMG_SIZE = (64, 30)
@@ -48,27 +52,6 @@ def detect_blink(eye_img):
     status = status*100
     status = round(status, 3)
     return status
-
-
-pygame.init()
-short_sound_blink = mixer.Sound("./sounds/short_blink.wav")
-short_sound_break = mixer.Sound("./sounds/short_break.wav")
-long_sound_blink = mixer.Sound("./sounds/voiceover_blink.wav")
-long_sound_break = mixer.Sound("./sounds/voiceover_break.wav")
-
-
-def playBlink():
-    if SHORT_VOICEOVER:
-        short_sound_blink.play()
-    else:
-        long_sound_blink.play()
-
-
-def playBreak():
-    if SHORT_VOICEOVER:
-        short_sound_break.play()
-    else:
-        long_sound_break.play()
 
 
 def enlighten_image(bgrImage):
@@ -129,84 +112,16 @@ class App:
         self.vid = VideoCapture(self.video_source)
 
         # =========== Main Window ===========
-
-        customtkinter.set_appearance_mode("System")
-        customtkinter.set_default_color_theme("blue")
-
-        self.root_tk = customtkinter.CTk()
-        self.root_tk.geometry("800x500")
-        self.root_tk.title(window_title)
-        self.root_tk.grid_rowconfigure(1, weight=1)
-        self.root_tk.grid_columnconfigure(0, weight=1)
-
-        self.Menu = customtkinter.CTkFrame(
-            master=self.root_tk, width=800, height=75, corner_radius=0, fg_color="#212325")
-        self.Menu.grid(row=0, column=0, sticky="NEWS")
-
-        self.Menu.grid_columnconfigure(0, weight=1)
-        self.Menu.grid_columnconfigure(1, weight=1)
-        self.Menu.grid_columnconfigure(2, weight=1)
-
-        self.ActivityButton = MenuButton(self.Menu, 'Activity', 'Helvetica 16 bold',
-                                         lambda: self.note.select(0)).grid(column=0, row=0)
-        self.StartButton = MenuButton(self.Menu, 'Start', 'Helvetica 16 bold',
-                                      lambda: self.note.select(1)).grid(column=1, row=0)
-        self.SettingsButton = MenuButton(self.Menu, 'Settings', 'Helvetica 16 bold',
-                                         lambda: self.note.select(2)).grid(column=2, row=0)
-
-        noteStyle = Style()
-        noteStyle.theme_use('default')
-        noteStyle.layout('TNotebook.Tab', [])
-        noteStyle.configure("TNotebook", background="#212325", borderwidth=0)
-        noteStyle.configure(
-            "TNotebook.Tab", background="#212325", borderwidth=0)
-        noteStyle.map("TNotebook", background=[("selected", "#212325")])
-
-        self.note = Notebook(self.root_tk, padding=25)
-        self.note.grid(column=0, row=1, stick="NEWS")
-
-        # =========== Activity Page ===========
-        ActivityPage = customtkinter.CTkFrame(master=self.note,
-                                              width=200,
-                                              height=200,
-                                              corner_radius=10)
-        customtkinter.CTkLabel(ActivityPage, text="activity page").grid()
-        self.note.add(ActivityPage)
-
-        # =========== Start Page ===========
-
-        StartPage = customtkinter.CTkFrame(master=self.note,
-                                           width=200,
-                                           height=200,
-                                           corner_radius=10)
-        customtkinter.CTkLabel(StartPage, text="start page").grid()
-        self.note.add(StartPage)
-
-        # =========== Settings Page ===========
-
-        SettingsPage = customtkinter.CTkFrame(master=self.note,
-                                              width=200,
-                                              height=200,
-                                              corner_radius=10)
-        self.note.add(SettingsPage)
-
-        # Create a canvas that can fit the above video source size
-        self.scrollbar = customtkinter.CTkScrollbar()
-        self.canvas = customtkinter.CTkCanvas(
-            StartPage, width=self.vid.width, height=self.vid.height)
-        self.canvas.grid(column=0, row=0, sticky="news")
-
-        self.scrollbar = customtkinter.CTkScrollbar(
-            StartPage, command=self.canvas.yview)
-        self.scrollbar.grid(row=0, column=1, sticky="ns")
-
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.AppGui = AppGui()
+        self.AppGui.init_window(window_title)
+        self.AppGui.init_menu()
+        self.AppGui.init_pages()
 
         # Creates a custom routine based on the delay
-        self.delay = 17  # 33ms delay for 30 fps
-        self.update()
-
-        self.root_tk.mainloop()
+        self.delay = 17
+        # TODO: implement the update function
+        # self.AppGui.root_tk.update()
+        self.AppGui.root_tk.mainloop()
 
     def update(self):
         success, frame = self.vid.get_frame()
@@ -355,7 +270,12 @@ class App:
         if (self.blink_interval > MAX_BLINK_INTERVAL):
             self.blink_interval = 0
             self.prev_time = time.time()
-            # playBlink()
+            # Sounds.playBlink()
+
+        # # remind to take breaks
+        # if (self.screen_time + self.temp_screen_time > MAX_SESSION * self.break_reminder_count):
+        #     Sounds.playBreak()
+        #     self.break_reminder_count += 1
 
         fps = round(1/(time.time() - self.last_frame_stamp), 5)
 
@@ -374,41 +294,6 @@ class App:
 
     def write_to_file(self, array):
         csv.writer(self.f, delimiter=',').writerows(array)
-
-
-class VideoCapture:
-    def __init__(self, video_source=0):
-        # Open the video source
-        self.vid = cv.VideoCapture(video_source)
-        if not self.vid.isOpened():
-            raise ValueError("Unable to open video source", video_source)
-
-        res = (1280, 720)
-        # set video source width and height
-        self.vid.set(3, res[0])
-        self.vid.set(4, res[1])
-        self.vid.set(cv.CAP_PROP_FPS, 90)
-
-        # Get video source width and height
-        self.width, self.height = res
-
-    # To get frames
-
-    def get_frame(self):
-        success, image = self.vid.read()  # read image
-        if not self.vid.isOpened():
-            return (success, None)
-
-        if not success:
-            return (success, None)
-
-        return (success, image)
-
-    # Release the video source when the object is destroyed
-    def __del__(self):
-        if self.vid.isOpened():
-            self.vid.release()
-            cv.destroyAllWindows()
 
 
 def main():
