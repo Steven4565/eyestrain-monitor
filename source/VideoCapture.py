@@ -28,6 +28,9 @@ class VideoCapture:
 
         return (success, image)
 
+    def get_fps(self):
+        return self.vid.get(cv2.CAP_PROP_FPS)
+
     # Release the video source when the object is destroyed
     def __del__(self):
         if self.vid.isOpened():

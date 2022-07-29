@@ -1,12 +1,21 @@
 from tkinter import Label
+from PIL import Image, ImageTk
 import customtkinter
 from source.customWidgets import MenuButton, MenuButtonTemplate
 from tkinter.ttk import Notebook, Style
+import tkinter as tk
+from source.AILogic import AIInstance
+
+from source.VideoCapture import *
+from time import time_ns
+import cv2
+import sys
 
 
 class AppGui:
     # Declare variables & types
     root_tk: customtkinter.CTk
+    video_canvas: customtkinter.CTkCanvas
     _height: int
     _width: int
     _menu_font: str = "Helvetica 16 bold"
@@ -14,6 +23,7 @@ class AppGui:
 
     _menu_bg_color: str
     _active_menu_bg_color: str
+    _video_fps_ns: int
 
     # Main Window Setup
     def __init__(self, width=800, height=500):
@@ -88,8 +98,10 @@ class AppGui:
                                            width=200,
                                            height=200,
                                            corner_radius=10)
-        customtkinter.CTkLabel(StartPage, text="start page").grid()
+        #customtkinter.CTkLabel(StartPage, text="start page").grid()
         self.note.add(StartPage)
+        # TODO: cleanup
+        self.StartPage = StartPage
 
         # =========== Settings Page ===========
 
@@ -100,13 +112,49 @@ class AppGui:
         self.note.add(SettingsPage)
 
         # Create a canvas that can fit the above video source size
-        self.scrollbar = customtkinter.CTkScrollbar()
-        self.canvas = customtkinter.CTkCanvas(
-            StartPage, width=640, height=480)
-        self.canvas.grid(column=0, row=0, sticky="news")
+        #self.scrollbar = customtkinter.CTkScrollbar()
+        # self.video_canvas = customtkinter.CTkCanvas(
+        #    StartPage, width=640, height=480)
+        #self.video_canvas.grid(column=0, row=0, sticky="news")
 
-        self.scrollbar = customtkinter.CTkScrollbar(
-            StartPage, command=self.canvas.yview)
-        self.scrollbar.grid(row=0, column=1, sticky="ns")
+        # naming is hard, kill me now
+        self.video_display = tk.Label(
+            self.StartPage)
+        self.video_display.grid()
 
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        # self.scrollbar = customtkinter.CTkScrollbar(
+        #    StartPage, command=self.video_canvas.yview)
+        #self.scrollbar.grid(row=0, column=1, sticky="ns")
+
+        # self.video_canvas.configure(yscrollcommand=self.scrollbar.set)
+
+    def app_loop(self):
+        self.init_videostream()
+
+        next_video_poll = time_ns()
+
+        while True:
+            self.root_tk.update_idletasks()
+            if (next_video_poll <= time_ns()):
+                # Try to match video FPS
+                process_time_start = time_ns()
+                self.update_canvas()
+                process_time_took = time_ns() - process_time_start
+                print("Took {0} ns".format(process_time_took))
+                next_video_poll = min(
+                    0, self._video_fps_ns-process_time_took) + time_ns()
+            self.root_tk.update()
+
+    def init_videostream(self, video_stream=2):
+        self.vid = VideoCapture(video_stream)
+        self._video_fps_ns = 1000000/self.vid.get_fps()
+
+    def update_canvas(self):
+        success, frame = self.vid.get_frame()
+
+        if success:
+            imageResult = AIInstance.process_frame(frame)
+            photo = ImageTk.PhotoImage(image=Image.fromarray(imageResult))
+            self.video_display.configure(image=photo)
+            #self.video_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
+        self.root_tk.after(1, self.update_canvas)
