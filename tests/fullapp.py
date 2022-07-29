@@ -14,7 +14,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 import pygame
 from pygame import mixer
 
-from source.rotated_rect_crop import *
+from rotated_rect_crop import *
 
 MAX_SESSION = 1200  # max screen time in seconds
 MIN_BREAK = 20  # min break (minimum face not detected time for timer to reset)

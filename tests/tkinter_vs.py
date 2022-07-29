@@ -10,6 +10,7 @@ class App:
         self.window.title(window_title)
         self.video_source = video_source
 
+        # open video source (by default this will try to open the computer webcam)
         self.vid = VideoCapture(self.video_source)
 
         # Create a canvas that can fit the above video source size

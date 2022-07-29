@@ -1,17 +1,17 @@
+# AI Imports
+import PIL.ImageTk
+import PIL.Image
+from rotated_rect_crop import *
+from pygame import mixer
+import pygame
+import csv
 import math
 import time
 import cv2 as cv
 import numpy as np
-import seaborn as sns
 import mediapipe as mp
-import tensorflow as tf
-import matplotlib.pyplot as plt
 import tensorflow.keras as keras
 
-import pygame
-from pygame import mixer
-
-from source.rotated_rect_crop import *
 
 # Tkinter imports
 import tkinter as tk
@@ -22,41 +22,37 @@ import customtkinter
 from source.customWidgets import *
 
 
+from tensorflow.python.ops.numpy_ops import np_config
+np_config.enable_numpy_behavior()
+
 MAX_SESSION = 1200  # max screen time in seconds
 MIN_BREAK = 20  # min break (minimum face not detected time for timer to reset)
 MAX_BLINK_INTERVAL = 10  # max time for not blinking in seconds
 CAMERA_INDEX = 1
+
+# change the height value of IMG_SIZE to change AI threshold
+IMG_SIZE = (64, 30)
+AI_INPUT_SIZE = (34, 26)
+DEBUG = False
 
 FONT_SIZE = 1
 FONT_COLOR = (0, 0, 255)
 
 SHORT_VOICEOVER = True
 
+model_new = keras.models.load_model('models/blinkdetection.h5')
 
-model = tf.keras.models.Sequential([
-    # The first convolution
-    tf.keras.layers.Conv2D(16, (3, 3), activation='relu',
-                           input_shape=(24, 24, 3)),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    # The second convolution
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    # The third convolution
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
-    # Flatten the results to feed into a DNN
-    tf.keras.layers.Flatten(),
-    # 512 neuron hidden layer
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dense(1, activation='sigmoid')])
 
-model.compile(loss="binary_crossentropy",
-              optimizer=keras.optimizers.Adam(learning_rate=0.001),
-              metrics=["accuracy"])
-model.load_weights("./model.h5")
+def detect_blink(eye_img):
+    # pred_B = model_new.predict(eye_img)
+    pred_B = model_new(eye_img)
+    status = pred_B[0][0]
+    status = status*100
+    status = round(status, 3)
+    return status
+
 
 pygame.init()
-
 short_sound_blink = mixer.Sound("./sounds/short_blink.wav")
 short_sound_break = mixer.Sound("./sounds/short_break.wav")
 long_sound_blink = mixer.Sound("./sounds/voiceover_blink.wav")
@@ -88,6 +84,8 @@ faceMesh = mp.solutions.face_mesh.FaceMesh(
 landmark_points = np.array([130, 133, 145, 159, 263, 362, 374, 386])
 
 
+# Tkinter -------------------------------------
+
 class App:
     def __init__(self, window_title, video_source=0):
 
@@ -97,24 +95,23 @@ class App:
         self.results = []
 
         self.prev_rect = None
+        self.cropped_eye = None
 
         # for counting blinks
-        self.blink_count = []
+        self.blink_count = [0]
         self.prev_blink = False
         self.blinked = False
+        self.prediction_new = 0
 
         # counting time interval between blinks
         self.blink_interval = 0
         self.prev_time = time.time()
-        self.start_timestamp = time.strftime('%M %S', time.gmtime())
 
         # counting screen time
-        self.break_time = 0
-        self.screen_time = 0
-        self.temp_screen_time = 0
-        self.latest_face_undetected = time.time()
-        self.latest_face_detected = None
-        self.transition_face_detected_timestamp = None
+        self.since_face_left_frame = time.time()
+        self.since_face_entered_frame = None
+        # same as since_face_entered_frame but will be reset every 60 seconds for the graph
+        self.start_timestamp = None
 
         # for repeating break reminders
         self.break_reminder_count = 1
@@ -126,6 +123,8 @@ class App:
         self.show_debug = True
 
         # ============================= GUI stuff ==============================
+        self.f = open("blink_data.csv", "a", newline="")
+
         self.video_source = video_source
 
         # open video source
@@ -205,9 +204,8 @@ class App:
 
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-
         # Creates a custom routine based on the delay
-        self.delay = 30  # 33ms delay for 30 fps
+        self.delay = 17  # 33ms delay for 30 fps
         self.update()
 
         self.root_tk.mainloop()
@@ -223,110 +221,120 @@ class App:
             self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
         self.root_tk.after(self.delay, self.update)
 
+    def landmark_to_coords(self, face_landmarks, image):
+        coords_left = []  # left eye coords
+        coords_right = []  # right eye coords
+        for id, lm in enumerate(face_landmarks):
+            for idx in range(len(landmark_points)):
+                if id == landmark_points[idx]:
+                    ih, iw, ic = image.shape
+                    x, y = int(lm.x*iw), int(lm.y*ih)
+                    if (idx < 4):
+                        coords_left.append([int(x), int(y)])
+                    else:
+                        coords_right.append([int(x), int(y)])
+
+        return (coords_left, coords_right)
+
+    def get_bb(self, coords_left, coords_right):
+        # get the angle of the eyes
+        m_left_x, m_left_y = coords_left[0]
+        m_right_x, m_right_y = coords_right[0]
+        m = (m_left_y-m_right_y) / (m_left_x-m_right_x)
+        angle_in_degrees = math.degrees(math.atan(m))
+
+        # get width of left eye and right eye
+        width_left = abs(coords_left[0][0]-coords_left[1][0])
+        width_right = abs(coords_right[0][0]-coords_right[1][0])
+
+        # get the biggest rectangle
+        biggest_width = max(width_left, width_right)
+        coords = coords_left if width_left > width_right else coords_right
+
+        width = biggest_width * 1.2
+        height = width * IMG_SIZE[1] / IMG_SIZE[0]
+
+        rect = (((coords[0][0]+coords[1][0])//2, (coords[0][1]+coords[1]
+                [1])//2), (int(width), int(height)), angle_in_degrees)
+
+        # compare with previous rect, if difference is negligable, keep the old one for stabilizing purposes
+        if (self.prev_rect and abs(self.prev_rect[0][0] - rect[0][0]) < 2 and abs(self.prev_rect[0][1] - rect[0][1]) < 2 and abs(self.prev_rect[1][0] - rect[1][0]) < 2 and abs(self.prev_rect[1][1] - rect[1][1]) < 2 and abs(self.prev_rect[2] - rect[2]) < 10):
+            rect = self.prev_rect
+        else:
+            self.prev_rect = rect
+
+        # draw bounding box
+        box = np.int0(cv.boxPoints(rect))
+        cv.drawContours(self.imgRGB, [box], 0, (255, 255, 255), 1)
+
+        return rect
+
+    def try_processing_eyes(self, rect, imgRGB):
+        # crop the eyes
+        try:
+            image_cropped = cv.resize(crop_rotated_rectangle(
+                imgRGB, rect), (AI_INPUT_SIZE[0], AI_INPUT_SIZE[1]))
+            image_cropped = cv.cvtColor(
+                image_cropped, cv.COLOR_BGR2GRAY)
+            return image_cropped
+        except:
+            return None
+
     def process_frame(self, frame):
         self.imgRGB = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         self.last_frame_stamp = time.time()
         self.results = faceMesh.process(self.imgRGB)
 
+        # face does not show on frame
         if not self.results.multi_face_landmarks:
-            self.prev_time = time.time()
-            self.blink_interval = 0
-            if (self.latest_face_detected):
-                # set
-                self.transition_face_detected_timestamp = time.time()
-                self.screen_time += self.temp_screen_time
-                # reset
-                self.temp_screen_time = 0
-                self.latest_face_detected = None
-
-            # if break is more than 30s
-            if (self.transition_face_detected_timestamp):
-                self.break_time = time.time() - self.transition_face_detected_timestamp
-                if (time.time() - self.transition_face_detected_timestamp > MIN_BREAK):
-                    self.screen_time = 0
-                    self.break_time = 0
-                    self.transition_face_detected_timestamp = None
-
-            self.latest_face_undetected = time.time()
+            if (not self.since_face_left_frame):
+                self.since_face_left_frame = time.time()
+            if (time.time() - self.since_face_left_frame > 10):
+                self.since_face_entered_frame = None
+                self.start_timestamp = None
+        # face shows on frame
         else:
-            self.break_time = 0
-            self.latest_face_detected = time.time()
-            self.temp_screen_time = self.latest_face_detected - self.latest_face_undetected
+            if (self.since_face_left_frame and time.time() - self.since_face_left_frame > 10):
+                self.write_to_file(
+                    [[time.strftime('%H:%M', time.localtime()), 'break', round(time.time() - self.since_face_left_frame)]])
+            self.since_face_left_frame = None
+            if (not self.since_face_entered_frame):
+                self.since_face_entered_frame = time.time()
+                self.start_timestamp = time.time()
 
             for faceLms in self.results.multi_face_landmarks:
-                # get the eye landmarks
-                coords_i = []
-                coords_a = []
-                for id, lm in enumerate(faceLms.landmark):
-                    for idx in range(len(landmark_points)):
-                        if id == landmark_points[idx]:
-                            ih, iw, ic = self.imgRGB.shape
-                            x, y = int(lm.x*iw), int(lm.y*ih)
-                            if (idx < 4):
-                                coords_i.append([int(x), int(y)])
-                            else:
-                                coords_a.append([int(x), int(y)])
+                # get the eye coords from landmarks
+                coords_left, coords_right = self.landmark_to_coords(
+                    faceLms.landmark, self.imgRGB)
 
-                # get the angle of the eyes
-                m = (coords_i[0][1]-coords_a[0][1]) / \
-                    (coords_i[0][0]-coords_a[0][0])
-                angle_in_degrees = math.degrees(math.atan(m))
+                # ger bounding box and draw it
+                rect = self.get_bb(coords_left, coords_right)
 
-                # get the cropped rectangle coordinates
-                rect = None
-                temp_rect = None
-                padding = 10
-                width_i = max(abs(coords_i[0][0]-coords_i[1][0]),
-                              abs(coords_i[2][1]-coords_i[3][1])) + padding
-                width_a = max(abs(coords_a[0][0]-coords_a[1][0]),
-                              abs(coords_a[2][1]-coords_a[3][1])) + padding
-                # get the biggest rectangle
-                if (width_a >= width_i):
-                    temp_rect = (((coords_a[0][0]+coords_a[1][0])//2, (coords_a[0]
-                                                                       [1]+coords_a[1][1])//2), (width_a, width_a), angle_in_degrees)
+                processed_image = self.try_processing_eyes(rect, self.imgRGB)
+                if processed_image is not None:
+                    self.cropped_eye = processed_image
                 else:
-                    temp_rect = (((coords_i[0][0]+coords_i[1][0])//2, (coords_i[0]
-                                                                       [1]+coords_i[1][1])//2), (width_i, width_i), angle_in_degrees)
-
-                if (self.prev_rect and abs(self.prev_rect[0][0] - temp_rect[0][0]) < 2 and abs(self.prev_rect[0][1] - temp_rect[0][1]) < 2 and abs(self.prev_rect[1][0] - temp_rect[1][0]) < 2 and abs(self.prev_rect[1][1] - temp_rect[1][1]) < 2 and abs(self.prev_rect[2] - temp_rect[2]) < 10):
-                    rect = self.prev_rect
-                else:
-                    rect = temp_rect
-                    self.prev_rect = rect
-
-                # crop the eyes
-                processed_images = []
-                box = np.int0(cv.boxPoints(rect))
-                try:
-                    if (self.show_debug):
-                        cv.drawContours(
-                            self.imgRGB, [box], 0, (255, 255, 255), 1)
-                    image_cropped = cv.resize(
-                        crop_rotated_rectangle(self.imgRGB, rect), (24, 24))
-                    image_cropped = cv.cvtColor(
-                        image_cropped, cv.COLOR_BGR2GRAY)
-                    image_cropped = cv.cvtColor(
-                        image_cropped, cv.COLOR_GRAY2BGR)
-                    image_cropped = enlighten_image(image_cropped)
-                    image_cropped = tf.keras.applications.vgg19.preprocess_input(
-                        image_cropped)
-                    processed_images.append(image_cropped)
-                except:
                     continue
 
                 # predict the blink
-                predictions = model.predict(np.array(processed_images))
+                self.prediction_new = detect_blink(
+                    np.array([processed_image]).astype(np.float32)/255)
                 self.prev_blink = self.blinked
-                for prediction in predictions:
-                    if np.ceil(prediction):
-                        self.blinked = True
-                        break
-                    self.blinked = False
+                if self.prediction_new < 0.9:
+                    self.blinked = True
+                    break
+                self.blinked = False
+
+            if(DEBUG):
+                cv.imshow('eye', self.cropped_eye)
+                cv.waitKey(0)
+                cv.destroyAllWindows()
 
         # handle per minute blink frequency
-        if (self.start_timestamp != time.strftime('%M', time.gmtime())):
-            self.start_timestamp = time.strftime('%M', time.gmtime())
-            self.blink_count.append(0)
+        if (self.since_face_entered_frame):
+            if (round(time.time() - self.start_timestamp) > 60):
+                self.start_timestamp = time.time()
+                self.blink_count.append(0)
 
         # handle blinks
         if (self.blinked and self.prev_blink == False and self.blink_interval > 0.08):
@@ -334,6 +342,12 @@ class App:
             self.prev_blink = True
             self.blink_interval = 0
             self.prev_time = time.time()
+
+        # write session data to file
+        if (len(self.blink_count) > 5):
+            self.write_to_file(
+                [[time.strftime('%H:%M', time.localtime()), 'session', *self.blink_count[0:-1]]])
+            self.blink_count = [0]
 
         # blink duration
         if(not self.blinked and not self.prev_blink):
@@ -343,27 +357,25 @@ class App:
         if (self.blink_interval > MAX_BLINK_INTERVAL):
             self.blink_interval = 0
             self.prev_time = time.time()
-            playBlink()
-
-        # remind to take breaks
-        if (self.screen_time + self.temp_screen_time > MAX_SESSION * self.break_reminder_count):
-            playBreak()
-            self.break_reminder_count += 1
+            # playBlink()
 
         fps = round(1/(time.time() - self.last_frame_stamp), 5)
 
-        cv.putText(self.imgRGB, 'count: ' + str(int(sum(self.blink_count))) + ('+' if self.blinked else ''),
-                   (10, 50), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'session time: ' + str(round(self.screen_time + self.temp_screen_time)) + 's',
-                   (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'blink interval: ' + str(round(self.blink_interval, 2)) + 's',
-                   (10, 150), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'break reminder: ' + str(round(self.screen_time + self.temp_screen_time)) + 's',
-                   (10, 200), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'break time: ' + str(round(self.break_time)) + '/' + str(MIN_BREAK) +
-                   's', (10, 250), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'fps: ' + str(fps), (10, 300),
+        cv.putText(self.imgRGB, 'percent opened ' + str(self.prediction_new), (10, 50),
                    cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        cv.putText(self.imgRGB, 'count: ' + str(int(sum(self.blink_count))) + ('+' if self.blinked else ''),
+                   (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        if (self.since_face_entered_frame):
+            cv.putText(self.imgRGB, 'session time: ' + str(round(time.time() - self.since_face_entered_frame)) + 's',
+                       (10, 150), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        if (self.since_face_left_frame):
+            cv.putText(self.imgRGB, 'break time: ' + str(round(time.time() - self.since_face_left_frame)) + '/' + str(MIN_BREAK) +
+                       's', (10, 200), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        cv.putText(self.imgRGB, 'fps: ' + str(fps), (10, 250),
+                   cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+
+    def write_to_file(self, array):
+        csv.writer(self.f, delimiter=',').writerows(array)
 
 
 class VideoCapture:
@@ -373,10 +385,11 @@ class VideoCapture:
         if not self.vid.isOpened():
             raise ValueError("Unable to open video source", video_source)
 
-        res = (640, 480)
+        res = (1280, 720)
         # set video source width and height
         self.vid.set(3, res[0])
         self.vid.set(4, res[1])
+        self.vid.set(cv.CAP_PROP_FPS, 90)
 
         # Get video source width and height
         self.width, self.height = res
@@ -389,7 +402,6 @@ class VideoCapture:
             return (success, None)
 
         if not success:
-            print("Ignoring empty camera frame.")
             return (success, None)
 
         return (success, image)
@@ -402,7 +414,7 @@ class VideoCapture:
 
 
 def main():
-    App('Eye Strain Monitor', CAMERA_INDEX)
+    App('Video Recorder', 1)
 
 
 main()
