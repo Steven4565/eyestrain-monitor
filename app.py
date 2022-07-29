@@ -22,7 +22,7 @@ CAMERA_INDEX = 1
 
 # change the height value of IMG_SIZE to change AI threshold
 IMG_SIZE = (64, 30)
-B_SIZE = (34, 26)
+AI_INPUT_SIZE = (34, 26)
 DEBUG = False
 
 FONT_SIZE = 1
@@ -159,7 +159,7 @@ class App:
 
         return (coords_left, coords_right)
 
-    def get_rect(self, coords_left, coords_right):
+    def get_bb(self, coords_left, coords_right):
         # get the angle of the eyes
         m_left_x, m_left_y = coords_left[0]
         m_right_x, m_right_y = coords_right[0]
@@ -186,7 +186,22 @@ class App:
         else:
             self.prev_rect = rect
 
+        # draw bounding box
+        box = np.int0(cv.boxPoints(rect))
+        cv.drawContours(self.imgRGB, [box], 0, (255, 255, 255), 1)
+
         return rect
+
+    def try_processing_eyes(self, rect, imgRGB):
+        # crop the eyes
+        try:
+            image_cropped = cv.resize(crop_rotated_rectangle(
+                imgRGB, rect), (AI_INPUT_SIZE[0], AI_INPUT_SIZE[1]))
+            image_cropped = cv.cvtColor(
+                image_cropped, cv.COLOR_BGR2GRAY)
+            return image_cropped
+        except:
+            return None
 
     def process_frame(self, frame):
         self.imgRGB = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
@@ -215,25 +230,18 @@ class App:
                 coords_left, coords_right = self.landmark_to_coords(
                     faceLms.landmark, self.imgRGB)
 
-                rect = self.get_rect(coords_left, coords_right)
+                # ger bounding box and draw it
+                rect = self.get_bb(coords_left, coords_right)
 
-                # crop the eyes
-                processed_images = []
-                box = np.int0(cv.boxPoints(rect))
-                try:
-                    cv.drawContours(self.imgRGB, [box], 0, (255, 255, 255), 1)
-                    image_cropped = cv.resize(
-                        crop_rotated_rectangle(self.imgRGB, rect), (34, 26))
-                    image_cropped = cv.cvtColor(
-                        image_cropped, cv.COLOR_BGR2GRAY)
-                    self.cropped_eye = image_cropped
-                    processed_images.append(image_cropped)
-                except:
+                processed_image = self.try_processing_eyes(rect, self.imgRGB)
+                if processed_image is not None:
+                    self.cropped_eye = processed_image
+                else:
                     continue
 
                 # predict the blink
                 self.prediction_new = detect_blink(
-                    np.array(processed_images).astype(np.float32)/255)
+                    np.array([processed_image]).astype(np.float32)/255)
                 self.prev_blink = self.blinked
                 if self.prediction_new < 0.9:
                     self.blinked = True
@@ -276,17 +284,17 @@ class App:
 
         fps = round(1/(time.time() - self.last_frame_stamp), 5)
 
+        cv.putText(self.imgRGB, 'percent opened ' + str(self.prediction_new), (10, 50),
+                   cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         cv.putText(self.imgRGB, 'count: ' + str(int(sum(self.blink_count))) + ('+' if self.blinked else ''),
-                   (10, 50), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+                   (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         if (self.since_face_entered_frame):
             cv.putText(self.imgRGB, 'session time: ' + str(round(time.time() - self.since_face_entered_frame)) + 's',
-                       (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+                       (10, 150), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         if (self.since_face_left_frame):
             cv.putText(self.imgRGB, 'break time: ' + str(round(time.time() - self.since_face_left_frame)) + '/' + str(MIN_BREAK) +
-                       's', (10, 250), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'fps: ' + str(fps), (10, 300),
-                   cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'percent opened ' + str(self.prediction_new), (10, 350),
+                       's', (10, 200), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        cv.putText(self.imgRGB, 'fps: ' + str(fps), (10, 250),
                    cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
 
     def write_to_file(self, array):
