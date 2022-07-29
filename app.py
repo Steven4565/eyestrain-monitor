@@ -1,7 +1,7 @@
 # AI Imports
 import PIL.ImageTk
 import PIL.Image
-from rotated_rect_crop import *
+from source.rotated_rect_crop import *
 from pygame import mixer
 import pygame
 import csv
@@ -11,7 +11,6 @@ import cv2 as cv
 import numpy as np
 import mediapipe as mp
 import tensorflow.keras as keras
-
 
 # Tkinter imports
 import tkinter as tk
@@ -44,7 +43,6 @@ model_new = keras.models.load_model('models/blinkdetection.h5')
 
 
 def detect_blink(eye_img):
-    # pred_B = model_new.predict(eye_img)
     pred_B = model_new(eye_img)
     status = pred_B[0][0]
     status = status*100
@@ -381,7 +379,7 @@ class App:
 class VideoCapture:
     def __init__(self, video_source=0):
         # Open the video source
-        self.vid = cv2.VideoCapture(video_source)
+        self.vid = cv.VideoCapture(video_source)
         if not self.vid.isOpened():
             raise ValueError("Unable to open video source", video_source)
 
@@ -410,7 +408,7 @@ class VideoCapture:
     def __del__(self):
         if self.vid.isOpened():
             self.vid.release()
-            cv2.destroyAllWindows()
+            cv.destroyAllWindows()
 
 
 def main():
