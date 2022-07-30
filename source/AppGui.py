@@ -123,8 +123,8 @@ class AppGui:
         self.video_display.grid()
 
         # self.scrollbar = customtkinter.CTkScrollbar(
-        #    StartPage, command=self.video_canvas.yview)
-        #self.scrollbar.grid(row=0, column=1, sticky="ns")
+        #     StartPage, command=self.video_canvas.yview)
+        # self.scrollbar.grid(row=0, column=1, sticky="ns")
 
         # self.video_canvas.configure(yscrollcommand=self.scrollbar.set)
 
@@ -145,7 +145,7 @@ class AppGui:
                     0, self._video_fps_ns-process_time_took) + time_ns()
             self.root_tk.update()
 
-    def init_videostream(self, video_stream=2):
+    def init_videostream(self, video_stream=1):
         self.vid = VideoCapture(video_stream)
         self._video_fps_ns = 1000000/self.vid.get_fps()
 
@@ -155,6 +155,7 @@ class AppGui:
         if success:
             imageResult = AIInstance.process_frame(frame)
             photo = ImageTk.PhotoImage(image=Image.fromarray(imageResult))
+            self.video_display.photo = photo
             self.video_display.configure(image=photo)
             #self.video_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
         self.root_tk.after(1, self.update_canvas)
