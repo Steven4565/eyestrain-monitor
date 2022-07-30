@@ -9,7 +9,8 @@ from PIL import ImageTk
 import PIL
 
 from source.VideoCapture import *
-from source.utils.Config import AppConfig
+from source.utils.ImageUtils import *
+from source.utils.Config import *
 
 
 class AppGui:
@@ -104,19 +105,51 @@ class AppGui:
         # Label for displaying the video stream
         self.video_display = Label(
             start_frame)
-        self.video_display.grid()
+        self.video_display.grid(row=0, column=0, sticky="ew")
 
-    def init_videostream(self, video_stream=0):
-        self.vid = VideoCapture(video_stream)
-        self._video_fps_ns = 1000000/self.vid.get_fps()
+
+        # Get all possible video indexes
+        video_inputs = VideoCapture.get_cameras()
+        video_input_choices = list(map(lambda x: "Camera {0}".format(x), video_inputs))
+
+        combobox_var = StringVar(
+            value="Camera {0}".format(AppConfig.cfg["video"]["camera_index"]))  # set initial value
+
+        def combobox_callback(choice):
+            self.init_videostream(video_stream=video_inputs[video_input_choices.index(choice)])
+            print("Changed video input to {0}".format(video_inputs[video_input_choices.index(choice)]))
+
+        self.video_selection = CTkComboBox(start_frame, variable=combobox_var, command=combobox_callback, values=video_input_choices)
+        self.video_selection.grid()
+
+    def init_videostream(self, video_stream=0) -> bool:
+        try:
+            self.vid = VideoCapture(video_stream)
+            self._video_fps_ns = 1000000/self.vid.get_fps()
+            return True
+        except:
+            # Cleanup to prevent some weird errors.
+            if hasattr(self, "vid"):
+                delattr(self, "vid")
+            return False
 
     def update_canvas(self):
-        success, frame = self.vid.get_frame()
+        if hasattr(self, "vid"):
+            success, frame = self.vid.get_frame()
 
-        if success:
-            imageResult = AIInstance.process_frame(frame)
-            # TODO: Fix the image PIL thing lmao. It's so messy
-            photo = ImageTk.PhotoImage(image=PIL.Image.fromarray(imageResult))
-            self.video_display.photo = photo
-            self.video_display.configure(image=photo)
+            if success:
+                imageResult = AIInstance.process_frame(frame)
+                imageResult = image_resize(imageResult, width=self._width-90)
+
+                # TODO: Fix the image PIL thing lmao. It's so messy
+                photo = ImageTk.PhotoImage(
+                    image=PIL.Image.fromarray(imageResult))
+                self.video_display.photo = photo
+                self.video_display.configure(text="", image=photo)
+            else:
+                self.video_display.configure(
+                    text="Video error. Make sure you have chosen the correct video input.")
+        else:
+            self.video_display.configure(
+                text="Video error. Make sure you have chosen the correct video input.")
         self.root_tk.after(1, self.update_canvas)
