@@ -71,7 +71,7 @@ class AILogic:
         # open filestream for saving data
         self.f = open("blink_data.csv", "a", newline="")
 
-    def process_frame(self, frame):
+    def process_frame(self, frame) -> cv2.Mat:
         self.imgRGB = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
         self.last_frame_stamp = time.time()
         self.results = faceMesh.process(self.imgRGB)
