@@ -1,4 +1,5 @@
 from source.Sounds import *
+from source.utils.Config import AppConfig
 from source.rotated_rect_crop import *
 import csv
 import math
@@ -16,11 +17,6 @@ faceMesh = mp.solutions.face_mesh.FaceMesh(
     max_num_faces=3, min_detection_confidence=0.5, min_tracking_confidence=0.5)
 landmark_points = np.array([130, 133, 145, 159, 263, 362, 374, 386])
 
-MAX_SESSION = 1200  # max screen time in seconds
-MIN_BREAK = 20  # min break (minimum face not detected time for timer to reset)
-MAX_BLINK_INTERVAL = 10  # max time for not blinking in seconds
-CAMERA_INDEX = 0
-
 # change the height value of IMG_SIZE to change AI threshold
 IMG_SIZE = (64, 30)
 AI_INPUT_SIZE = (34, 26)
@@ -28,9 +24,6 @@ DEBUG = False
 
 FONT_SIZE = 1
 FONT_COLOR = (0, 0, 255)
-
-SHORT_VOICEOVER = True
-
 
 model_new = keras.models.load_model('models/blinkdetection.h5')
 
@@ -87,12 +80,12 @@ class AILogic:
         if not self.results.multi_face_landmarks:
             if (not self.since_face_left_frame):
                 self.since_face_left_frame = time.time()
-            if (time.time() - self.since_face_left_frame > 10):
+            if (time.time() - self.since_face_left_frame > AppConfig.cfg["activity"]["min_break"]):
                 self.since_face_entered_frame = None
                 self.start_timestamp = None
         # face shows on frame
         else:
-            if (self.since_face_left_frame and time.time() - self.since_face_left_frame > 10):
+            if (self.since_face_left_frame and time.time() - self.since_face_left_frame > AppConfig.cfg["activity"]["min_break"]):
                 self.write_to_file(
                     [[time.strftime('%H:%M', time.localtime()), 'break', round(time.time() - self.since_face_left_frame)]])
             self.since_face_left_frame = None
@@ -118,15 +111,10 @@ class AILogic:
                 self.prediction_new = detect_blink(
                     np.array([processed_image]).astype(np.float32)/255)
                 self.prev_blink = self.blinked
-                if self.prediction_new < 0.9:
+                if self.prediction_new < AppConfig.cfg["activity"]["ai_confidence_threshold"]:
                     self.blinked = True
                     break
                 self.blinked = False
-
-            if(DEBUG):
-                cv.imshow('eye', self.cropped_eye)
-                cv.waitKey(0)
-                cv.destroyAllWindows()
 
         # handle per minute blink frequency
         if (self.since_face_entered_frame):
@@ -152,30 +140,31 @@ class AILogic:
             self.blink_interval = time.time() - self.prev_time
 
         # remind to blink after a few seconds of not blinking
-        if (self.blink_interval > MAX_BLINK_INTERVAL):
+        if (self.blink_interval > AppConfig.cfg["activity"]["max_blink_interval"]):
             self.blink_interval = 0
             self.prev_time = time.time()
-            # Sounds.playBlink()
+            Sounds.playBlink()
 
         # # remind to take breaks
-        # if (self.screen_time + self.temp_screen_time > MAX_SESSION * self.break_reminder_count):
+        # if (self.screen_time + self.temp_screen_time > AppConfig.cfg["activity"]["max_session"] * self.break_reminder_count):
         #     Sounds.playBreak()
         #     self.break_reminder_count += 1
 
         exec_time = round((time.time() - self.last_frame_stamp), 5)
 
-        cv.putText(self.imgRGB, 'percent opened ' + str(self.prediction_new), (10, 50),
-                   cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        if (AppConfig.cfg["video"]["debug_mode"]):
+            cv.putText(self.imgRGB, 'percent opened ' + str(self.prediction_new), (10, 50),
+                       cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+            cv.putText(self.imgRGB, 'exec time: ' + str(exec_time) + 'ms', (10, 250),
+                       cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         cv.putText(self.imgRGB, 'count: ' + str(int(sum(self.blink_count))) + ('+' if self.blinked else ''),
                    (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         if (self.since_face_entered_frame):
             cv.putText(self.imgRGB, 'session time: ' + str(round(time.time() - self.since_face_entered_frame)) + 's',
                        (10, 150), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         if (self.since_face_left_frame):
-            cv.putText(self.imgRGB, 'break time: ' + str(round(time.time() - self.since_face_left_frame)) + '/' + str(MIN_BREAK) +
-                       's', (10, 200), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'exec time: ' + str(exec_time) + 'ms', (10, 250),
-                   cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+            cv.putText(self.imgRGB, 'break time: {0}/{1}s'.format(str(round(time.time() - self.since_face_left_frame)), str(
+                AppConfig.cfg["activity"]["min_break"])), (10, 200), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
 
         return self.imgRGB
 
@@ -210,7 +199,8 @@ class AILogic:
         coords = coords_left if width_left > width_right else coords_right
 
         width = biggest_width * 1.2
-        height = width * IMG_SIZE[1] / IMG_SIZE[0]
+        height = width * \
+            AppConfig.cfg["activity"]["eye_crop_height"] / IMG_SIZE[0]
 
         rect = (((coords[0][0]+coords[1][0])//2, (coords[0][1]+coords[1]
                 [1])//2), (int(width), int(height)), angle_in_degrees)

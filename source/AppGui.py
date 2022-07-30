@@ -7,6 +7,7 @@ from PIL import ImageTk
 import PIL
 
 from source.VideoCapture import *
+from source.utils.Config import AppConfig
 
 
 class AppGui:
@@ -104,7 +105,7 @@ class AppGui:
             start_frame)
         self.video_display.grid()
 
-    def init_videostream(self, video_stream=1):
+    def init_videostream(self, video_stream=0):
         self.vid = VideoCapture(video_stream)
         self._video_fps_ns = 1000000/self.vid.get_fps()
 
