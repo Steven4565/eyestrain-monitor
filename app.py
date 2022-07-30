@@ -4,7 +4,6 @@ import os
 # AI Imports
 from source.rotated_rect_crop import *
 from source.VideoCapture import *
-from source.AILogic import AIInstance
 from source.AppGui import *
 from source.utils.Config import *
 
