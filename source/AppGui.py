@@ -1,3 +1,5 @@
+from source.Pages.ActivityPage import populate_activity_page
+from source.Pages.SettingsPage import populate_settings_page
 from source.customWidgets import MenuButton, MenuButtonTemplate, NotebookPage
 from tkinter.ttk import Notebook, Style
 from source.AILogic import AIInstance
@@ -95,10 +97,8 @@ class AppGui:
             self.note, self._width, self._height - 105)
         self.note.add(settings_page)
 
-        # Fill in activity page with buttons
-        for thing in range(20):
-            Button(activity_frame, text=f'Button {thing} Yo!').grid(
-                row=thing, column=0, pady=10, padx=10)
+        populate_activity_page(activity_frame)
+        populate_settings_page(settings_frame)
 
         # Label for displaying the video stream
         self.video_display = Label(
