@@ -32,6 +32,7 @@ class AppGui:
         self.root_tk = CTk()
         self._width = width
         self._height = height
+        self.root_tk.resizable(False, False)
 
     def init_window(self, window_title: str):
         self.root_tk.geometry("{0}x{1}".format(self._width, self._height))
