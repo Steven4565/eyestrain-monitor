@@ -29,7 +29,7 @@ second_frame = Frame(my_canvas)
 # Add that New frame To a Window In The Canvas
 my_canvas.create_window((0, 0), window=second_frame, anchor="nw")
 
-for thing in range(100):
+for thing in range(20):
     Button(second_frame, text=f'Button {thing} Yo!').grid(
         row=thing, column=0, pady=10, padx=10)
 

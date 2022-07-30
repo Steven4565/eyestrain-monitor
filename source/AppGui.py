@@ -1,21 +1,18 @@
-from tkinter import Label
-from PIL import Image, ImageTk
-import customtkinter
-from source.customWidgets import MenuButton, MenuButtonTemplate
+from source.customWidgets import MenuButton, MenuButtonTemplate, NotebookPage
 from tkinter.ttk import Notebook, Style
-import tkinter as tk
 from source.AILogic import AIInstance
+from customtkinter import *
+from tkinter import *
+from PIL import ImageTk
+import PIL
 
 from source.VideoCapture import *
-from time import time_ns
-import cv2
-import sys
 
 
 class AppGui:
     # Declare variables & types
-    root_tk: customtkinter.CTk
-    video_canvas: customtkinter.CTkCanvas
+    root_tk: CTk
+    video_canvas: CTkCanvas
     _height: int
     _width: int
     _menu_font: str = "Helvetica 16 bold"
@@ -27,9 +24,9 @@ class AppGui:
 
     # Main Window Setup
     def __init__(self, width=800, height=500):
-        customtkinter.set_appearance_mode("System")
-        customtkinter.set_default_color_theme("blue")
-        self.root_tk = customtkinter.CTk()
+        set_appearance_mode("System")
+        set_default_color_theme("blue")
+        self.root_tk = CTk()
         self._width = width
         self._height = height
 
@@ -40,7 +37,7 @@ class AppGui:
         self.root_tk.grid_columnconfigure(0, weight=1)
 
     def init_menu(self):
-        self.Menu = customtkinter.CTkFrame(
+        self.Menu = CTkFrame(
             master=self.root_tk, width=self._width, height=75, corner_radius=0, fg_color="#212325")
         self.Menu.grid(row=0, column=0, sticky="NEWS")
 
@@ -84,66 +81,28 @@ class AppGui:
 
     def init_pages(self):
 
-        # =========== Activity Page ===========
-        ActivityPage = customtkinter.CTkFrame(master=self.note,
-                                              width=200,
-                                              height=200,
-                                              corner_radius=10)
-        customtkinter.CTkLabel(ActivityPage, text="activity page").grid()
-        self.note.add(ActivityPage)
+        # initialize each page with scroll
+        activity_page, activity_frame = NotebookPage(
+            self.note, self._width, self._height - 105)
+        self.note.add(activity_page)
 
-        # =========== Start Page ===========
+        start_page, start_frame = NotebookPage(
+            self.note, self._width, self._height - 105)
+        self.note.add(start_page)
 
-        StartPage = customtkinter.CTkFrame(master=self.note,
-                                           width=200,
-                                           height=200,
-                                           corner_radius=10)
-        #customtkinter.CTkLabel(StartPage, text="start page").grid()
-        self.note.add(StartPage)
-        # TODO: cleanup
-        self.StartPage = StartPage
+        settings_page, settings_frame = NotebookPage(
+            self.note, self._width, self._height - 105)
+        self.note.add(settings_page)
 
-        # =========== Settings Page ===========
+        # Fill in activity page with buttons
+        for thing in range(20):
+            Button(activity_frame, text=f'Button {thing} Yo!').grid(
+                row=thing, column=0, pady=10, padx=10)
 
-        SettingsPage = customtkinter.CTkFrame(master=self.note,
-                                              width=200,
-                                              height=200,
-                                              corner_radius=10)
-        self.note.add(SettingsPage)
-
-        # Create a canvas that can fit the above video source size
-        #self.scrollbar = customtkinter.CTkScrollbar()
-        # self.video_canvas = customtkinter.CTkCanvas(
-        #    StartPage, width=640, height=480)
-        #self.video_canvas.grid(column=0, row=0, sticky="news")
-
-        # naming is hard, kill me now
-        self.video_display = tk.Label(
-            self.StartPage)
+        # Label for displaying the video stream
+        self.video_display = Label(
+            start_frame)
         self.video_display.grid()
-
-        # self.scrollbar = customtkinter.CTkScrollbar(
-        #     StartPage, command=self.video_canvas.yview)
-        # self.scrollbar.grid(row=0, column=1, sticky="ns")
-
-        # self.video_canvas.configure(yscrollcommand=self.scrollbar.set)
-
-    def app_loop(self):
-        self.init_videostream()
-
-        next_video_poll = time_ns()
-
-        while True:
-            self.root_tk.update_idletasks()
-            if (next_video_poll <= time_ns()):
-                # Try to match video FPS
-                process_time_start = time_ns()
-                self.update_canvas()
-                process_time_took = time_ns() - process_time_start
-                print("Took {0} ns".format(process_time_took))
-                next_video_poll = min(
-                    0, self._video_fps_ns-process_time_took) + time_ns()
-            self.root_tk.update()
 
     def init_videostream(self, video_stream=1):
         self.vid = VideoCapture(video_stream)
@@ -154,8 +113,8 @@ class AppGui:
 
         if success:
             imageResult = AIInstance.process_frame(frame)
-            photo = ImageTk.PhotoImage(image=Image.fromarray(imageResult))
+            # TODO: Fix the image PIL thing lmao. It's so messy
+            photo = ImageTk.PhotoImage(image=PIL.Image.fromarray(imageResult))
             self.video_display.photo = photo
             self.video_display.configure(image=photo)
-            #self.video_canvas.create_image(0, 0, image=photo, anchor=tk.NW)
         self.root_tk.after(1, self.update_canvas)

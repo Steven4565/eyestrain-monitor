@@ -1,4 +1,7 @@
+from tkinter.tix import NoteBook
+from customtkinter import *
 from tkinter import *
+
 
 def MenuButtonTemplate(root, font, color=['#23a8f2', '#1b85bf', "#212325", "#43474b"]):
     return lambda text, onClick, selected=None: MenuButton(root, text, font, onClick, color, selected)
@@ -13,6 +16,7 @@ def MenuButton(root, text, font, onClick, color=['#23a8f2', '#1b85bf'], selected
         nonlocal isSelected
         isSelected = True
         label.config(foreground=color[1], background=color[3])
+
     def onDeSelect(e):
         nonlocal isSelected
         isSelected = False
@@ -22,13 +26,46 @@ def MenuButton(root, text, font, onClick, color=['#23a8f2', '#1b85bf'], selected
     if selected:
         onSelect(None)
 
-
     # Bind the Enter and Leave Events to the Button
     label.bind('<ButtonRelease-1>', lambda e: onClick())
-    label.bind('<Leave>', lambda e: not isSelected and label.config(foreground=color[0], background=color[2]))
-    label.bind('<Enter>', lambda e: label.config(foreground=color[1], background=color[3]))
+    label.bind('<Leave>', lambda e: not isSelected and label.config(
+        foreground=color[0], background=color[2]))
+    label.bind('<Enter>', lambda e: label.config(
+        foreground=color[1], background=color[3]))
 
     label.bind("<<MenuSelect>>", onSelect)
     label.bind("<<MenuDeSelect>>", onDeSelect)
 
     return label
+
+
+def NotebookPage(root, width, height):
+    page_frame = CTkFrame(master=root, width=width, height=height,
+                          corner_radius=10)
+
+    # Create a canvas for the scrollbar
+    scrollbar_canvas = CTkCanvas(
+        page_frame, width=page_frame["width"]-70, height=page_frame["height"])
+    scrollbar_canvas.grid(column=0, row=0, sticky="news", padx=10, pady=10)
+
+    # Add a scrollbar to the canvas
+    scrollbar = CTkScrollbar(
+        page_frame, command=scrollbar_canvas.yview)
+    scrollbar.grid(column=0, row=0, sticky="nes")
+
+    # Configure canvas
+    scrollbar_canvas.configure(yscrollcommand=scrollbar.set)
+    scrollbar_canvas.bind('<Configure>', lambda e: scrollbar_canvas.configure(
+        scrollregion=scrollbar_canvas.bbox("all")))
+
+    content_frame = CTkLabel(
+        scrollbar_canvas)
+
+    scrollbar_canvas.create_window(
+        (0, 0), window=content_frame, anchor="nw")
+
+    def _on_mousewheel(event):
+        scrollbar_canvas.yview_scroll(round(-1*(event.delta/120)), "units")
+    scrollbar_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+    return (page_frame, content_frame)

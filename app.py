@@ -17,7 +17,6 @@ def main():
     AppGuiInstance.init_menu()
     AppGuiInstance.init_pages()
 
-    # AppGuiInstance.app_loop()
     AppGuiInstance.init_videostream()
     AppGuiInstance.update_canvas()
     AppGuiInstance.root_tk.mainloop()
