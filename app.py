@@ -11,16 +11,16 @@ from source.utils.Config import *
 # Tkinter imports
 from source.customWidgets import *
 
-AppConfig.load_config()
-
-
 def main():
 
     # =========== Main Window ===========
     AppGuiInstance = AppGui()
+    AppConfig.load_config()
+    
     AppGuiInstance.init_window('EyeStrain Monitor')
     AppGuiInstance.init_menu()
     AppGuiInstance.init_pages()
+    
 
     AppGuiInstance.init_videostream(AppConfig.cfg["video"]["camera_index"])
     AppGuiInstance.update_canvas()
