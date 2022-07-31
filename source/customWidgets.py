@@ -95,7 +95,7 @@ def NumberSetting(master, title, desc, order):
     return entry
 
 
-def OptionMenuSetting(master, title, desc, order, options, callback):
+def OptionMenuSetting(master, title, desc, order, options):
     SettingsLabel(master=master, text=title).grid(
         column=0, row=order*2, sticky='w')
     SettingsDesc(master=master, text=desc).grid(
