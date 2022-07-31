@@ -59,13 +59,8 @@ def NotebookPage(root, width, height):
     scrollbar_canvas.bind('<Configure>', lambda e: scrollbar_canvas.configure(
         scrollregion=scrollbar_canvas.bbox("all")))
 
-<<<<<<< HEAD
-    content_frame = Label(scrollbar_canvas)
-    content_frame.configure(bg='#2a2d2e')
-=======
     content_frame = CTkFrame(
         scrollbar_canvas)
->>>>>>> settings-page
 
     scrollbar_canvas.create_window(
         (0, 0), window=content_frame, anchor="nw")
