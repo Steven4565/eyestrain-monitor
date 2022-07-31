@@ -31,7 +31,8 @@ def populate_settings_page(frame):
             entry[3].get(), 'AI Confidence Threshold must be a float')
         eye_crop_height = validate_int(
             entry[4].get(), 'Eye Crop Height must be an integer')
-        reminder_type = check_reminder_type(entry[5].get())
+        reminder_type = check_reminder_type(
+            entry[5].get(), 'Please enter a valid option')
 
         if (max_session):
             AppConfig.cfg["activity"]["max_session"] = max_session
@@ -43,7 +44,8 @@ def populate_settings_page(frame):
             AppConfig.cfg["activity"]["ai_confidence_threshold"] = ai_confidence_threshold
         if (eye_crop_height):
             AppConfig.cfg["activity"]["eye_crop_height"] = ai_confidence_threshold
-        AppConfig.cfg["activity"]["reminder_type"] = reminder_type
+        if (reminder_type):
+            AppConfig.cfg["activity"]["reminder_type"] = reminder_type
 
         AppConfig.save_config()
 
@@ -79,10 +81,13 @@ def validate_float(value, error_message):
         return False
 
 
-def check_reminder_type(value):
+def check_reminder_type(value, error_message):
     if value == 'Voice':
         return 'VOICE'
     elif value == 'Long Voice':
         return 'VOICE_LONG'
     elif value == 'Visual':
         return "VISUAL"
+    else:
+        messagebox.showerror(error_message)
+        return False

@@ -103,4 +103,5 @@ def OptionMenuSetting(master, title, desc, order, options):
     combo_box = CTkComboBox(master=master,
                             values=options)
     combo_box.grid(column=1, row=order*2, sticky="e")
+
     return combo_box

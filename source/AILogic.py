@@ -145,10 +145,10 @@ class AILogic:
             self.prev_time = time.time()
             Sounds.playBlink()
 
-        # # remind to take breaks
-        # if (self.screen_time + self.temp_screen_time > AppConfig.cfg["activity"]["max_session"] * self.break_reminder_count):
-        #     Sounds.playBreak()
-        #     self.break_reminder_count += 1
+        # remind to take breaks
+        if (self.since_face_entered_frame and time.time() - self.since_face_entered_frame > AppConfig.cfg["activity"]["max_session"] * self.break_reminder_count):
+            self.break_reminder_count += 1
+            Sounds.playBreak()
 
         exec_time = round((time.time() - self.last_frame_stamp), 5)
 
