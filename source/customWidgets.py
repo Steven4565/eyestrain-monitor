@@ -101,7 +101,6 @@ def OptionMenuSetting(master, title, desc, order, options):
     SettingsDesc(master=master, text=desc).grid(
         column=0, row=order*2+1, sticky='w', pady=(0, 10))
     combo_box = CTkComboBox(master=master,
-                            values=options,
-                            command=callback)
+                            values=options)
     combo_box.grid(column=1, row=order*2, sticky="e")
     return combo_box
