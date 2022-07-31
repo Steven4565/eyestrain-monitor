@@ -3,7 +3,7 @@ from customtkinter import *
 from tkinter import *
 from source.utils.Config import AppConfig
 import sys
-from source.customWidgets import NumberSetting, OptionMenuSetting, SettingsDesc, SettingsLabel
+from source.CustomWidgets import NumberSetting, OptionMenuSetting, SettingsDesc, SettingsLabel
 
 
 def populate_settings_page(frame):

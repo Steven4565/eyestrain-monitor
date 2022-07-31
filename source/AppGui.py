@@ -1,6 +1,9 @@
+from turtle import bgcolor
+
+from numpy import true_divide
 from source.Pages.ActivityPage import populate_activity_page
 from source.Pages.SettingsPage import populate_settings_page
-from source.customWidgets import MenuButton, MenuButtonTemplate, NotebookPage
+from source.CustomWidgets import MenuButton, MenuButtonTemplate, NotebookPage
 from tkinter.ttk import Notebook, Style
 from source.AILogic import AIInstance
 from customtkinter import *
@@ -99,31 +102,48 @@ class AppGui:
             self.note, self._width, self._height - 105)
         self.note.add(settings_page)
 
+        self.populate_start_page(start_frame)
         populate_activity_page(activity_frame)
         populate_settings_page(settings_frame)
 
+        # ============== START PAGE ==============
+
+    def populate_start_page(self, start_frame):
+        # To expand the canvas
+        CTkFrame(master=start_frame, width=750, height=0).grid(
+            column=0, row=0, columnspan=2)
+
         # Label for displaying the video stream
-        self.video_display = Label(
-            start_frame)
-        self.video_display.grid(row=0, column=0, sticky="ew")
+        self.video_display = Label(start_frame, justify=CENTER, bg="#2a2d2e")
+        self.video_display.grid(row=1, column=0, sticky="ew", columnspan=2)
 
         # Get all possible video indexes
         video_inputs = VideoCapture.get_cameras()
         video_input_choices = list(
             map(lambda x: "Camera {0}".format(x), video_inputs))
 
+        def combobox_callback(choice):
+            camera_choice = video_inputs[video_input_choices.index(choice)]
+            self.init_videostream(video_stream=camera_choice)
+            print("Changed video input to {0}".format(camera_choice))
+            AppConfig.cfg["video"]["camera_index"] = camera_choice
+            AppConfig.save_config()
+
         combobox_var = StringVar(
             value="Camera {0}".format(AppConfig.cfg["video"]["camera_index"]))  # set initial value
+        CTkComboBox(start_frame, variable=combobox_var,
+                    command=combobox_callback, values=video_input_choices).grid(column=0, row=2, pady=20)
 
-        def combobox_callback(choice):
-            self.init_videostream(
-                video_stream=video_inputs[video_input_choices.index(choice)])
-            print("Changed video input to {0}".format(
-                video_inputs[video_input_choices.index(choice)]))
+        switch_var = StringVar()
 
-        self.video_selection = CTkComboBox(
-            start_frame, variable=combobox_var, command=combobox_callback, values=video_input_choices)
-        self.video_selection.grid()
+        def toggle_camera():
+            if(switch_var.get() == "1"):
+                AppConfig.cfg["video"]["show_camera"] = True
+            else:
+                AppConfig.cfg["video"]["show_camera"] = False
+
+        CTkSwitch(start_frame, text="Turn camera on",
+                  command=toggle_camera, variable=switch_var).grid(column=1, row=2)
 
     def init_videostream(self, video_stream=0) -> bool:
         try:
@@ -144,7 +164,6 @@ class AppGui:
                 imageResult = AIInstance.process_frame(frame)
                 imageResult = image_resize(imageResult, width=self._width-90)
 
-                # TODO: Fix the image PIL thing lmao. It's so messy
                 photo = ImageTk.PhotoImage(
                     image=PIL.Image.fromarray(imageResult))
                 self.video_display.photo = photo
@@ -156,3 +175,6 @@ class AppGui:
             self.video_display.configure(
                 text="Video error. Make sure you have chosen the correct video input.")
         self.root_tk.after(1, self.update_canvas)
+
+
+AppGuiInstance = AppGui()
