@@ -1,5 +1,5 @@
-def halo(kal, ul):
-    return "k " + kal + " " + ul
+import tkinter as tk
+from overlay import Window
 
-
-print(halo("kalimat", "ku"))
+win = Window()
+# Window.launch()

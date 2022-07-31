@@ -115,7 +115,6 @@ class AppGui:
 
         if success:
             imageResult = AIInstance.process_frame(frame)
-            # TODO: Fix the image PIL thing lmao. It's so messy
             photo = ImageTk.PhotoImage(image=PIL.Image.fromarray(imageResult))
             self.video_display.photo = photo
             self.video_display.configure(image=photo)

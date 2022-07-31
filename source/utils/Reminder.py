@@ -1,12 +1,9 @@
+from pygame import mixer
+import pygame
 from os import environ
 
 from source.utils.Config import AppConfig
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
-import pygame
-from pygame import mixer
-
-SHORT_VOICEOVER = True
 
 pygame.init()
 
@@ -16,16 +13,18 @@ long_sound_blink = mixer.Sound("./sounds/voiceover_blink.wav")
 long_sound_break = mixer.Sound("./sounds/voiceover_break.wav")
 
 
-class Sounds:
+class Reminder:
 
-    def playBlink():
-        if AppConfig.cfg["activity"]["reminder_type"] == "VOICE":
+    def remind_blink():
+        reminder_config = AppConfig.cfg["activity"]["reminder_type"]
+        if reminder_config == "VOICE":
             short_sound_blink.play()
-        else:
+        elif reminder_config == "VOICE_LONG":
             long_sound_blink.play()
 
-    def playBreak():
-        if AppConfig.cfg["activity"]["reminder_type"] == "VOICE_LONG":
+    def remind_break():
+        reminder_config = AppConfig.cfg["activity"]["reminder_type"]
+        if reminder_config == "VOICE":
             short_sound_break.play()
-        else:
+        elif reminder_config == "VOICE_LONG":
             long_sound_break.play()

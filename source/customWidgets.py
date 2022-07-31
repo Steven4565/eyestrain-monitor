@@ -1,4 +1,4 @@
-from tkinter.tix import NoteBook
+from turtle import window_width
 from customtkinter import *
 from tkinter import *
 
@@ -59,14 +59,54 @@ def NotebookPage(root, width, height):
     scrollbar_canvas.bind('<Configure>', lambda e: scrollbar_canvas.configure(
         scrollregion=scrollbar_canvas.bbox("all")))
 
+<<<<<<< HEAD
     content_frame = Label(scrollbar_canvas)
     content_frame.configure(bg='#2a2d2e')
+=======
+    content_frame = CTkFrame(
+        scrollbar_canvas)
+>>>>>>> settings-page
 
     scrollbar_canvas.create_window(
         (0, 0), window=content_frame, anchor="nw")
 
     def _on_mousewheel(event):
         scrollbar_canvas.yview_scroll(round(-1*(event.delta/120)), "units")
-    scrollbar_canvas.bind_all("<MouseWheel>", _on_mousewheel)
+    content_frame.bind_all("<MouseWheel>", _on_mousewheel)
 
     return (page_frame, content_frame)
+
+
+def SettingsLabel(master, text):
+    label = CTkLabel(master=master, text=text,
+                     text_font=('Ariel', 18), bg_color='#2a2d2e', text_color='#a8d6f2', anchor='w', justify=LEFT)
+    return label
+
+
+def SettingsDesc(master, text):
+    label = CTkLabel(master=master, text=text,
+                     text_font=('Ariel', 12), bg_color='#2a2d2e', text_color='#a8d6f2', anchor='w', wraplength=600, justify=LEFT)
+    return label
+
+
+def NumberSetting(master, title, desc, order):
+    SettingsLabel(master=master, text=title).grid(
+        column=0, row=order*2, sticky='w')
+    SettingsDesc(master=master, text=desc).grid(
+        column=0, row=order*2+1, sticky='w', pady=(0, 10))
+    entry = CTkEntry(master=master, justify=RIGHT, width=100,
+                     textvariable=StringVar)
+    entry.grid(column=1, row=order*2, sticky="e")
+    return entry
+
+
+def OptionMenuSetting(master, title, desc, order, options):
+    SettingsLabel(master=master, text=title).grid(
+        column=0, row=order*2, sticky='w')
+    SettingsDesc(master=master, text=desc).grid(
+        column=0, row=order*2+1, sticky='w', pady=(0, 10))
+    combo_box = CTkComboBox(master=master,
+                            values=options)
+    combo_box.grid(column=1, row=order*2, sticky="e")
+
+    return combo_box

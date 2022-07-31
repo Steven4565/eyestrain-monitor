@@ -1,4 +1,3 @@
----
 activity:
   max_session: 1200
   min_break: 20
@@ -9,8 +8,8 @@ activity:
     - VISUAL
     - VOICE
     - VOICE_LONG
-  reminder_type: VISUAL
+  reminder_type: VOICE_LONG
 video:
-  camera_index: 1
+  camera_index: 2
   show_camera: true
   debug_mode: true
