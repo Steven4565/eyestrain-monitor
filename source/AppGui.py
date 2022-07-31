@@ -9,7 +9,7 @@ from source.AILogic import AIInstance
 from customtkinter import *
 from tkinter import *
 from PIL import ImageTk
-import PIL
+from PIL import Image
 
 from source.VideoCapture import *
 from source.utils.ImageUtils import *
@@ -157,23 +157,32 @@ class AppGui:
             return False
 
     def update_canvas(self):
-        if hasattr(self, "vid"):
-            success, frame = self.vid.get_frame()
+        if AppConfig.cfg["video"]["show_camera"]:
+            if hasattr(self, "vid"):
+                success, frame = self.vid.get_frame()
 
-            if success:
-                imageResult = AIInstance.process_frame(frame)
-                imageResult = image_resize(imageResult, width=self._width-90)
+                if success:
+                    imageResult = AIInstance.process_frame(frame)
+                    imageResult = image_resize(
+                        imageResult, width=self._width-90)
 
-                photo = ImageTk.PhotoImage(
-                    image=PIL.Image.fromarray(imageResult))
-                self.video_display.photo = photo
-                self.video_display.configure(text="", image=photo)
+                    photo = ImageTk.PhotoImage(
+                        image=Image.fromarray(imageResult))
+                    self.video_display.photo = photo
+                    self.video_display.configure(text="", image=photo)
+                else:
+                    self.video_display.configure(
+                        text="Video error. Make sure you have chosen the correct video input.")
             else:
                 self.video_display.configure(
                     text="Video error. Make sure you have chosen the correct video input.")
+
         else:
-            self.video_display.configure(
-                text="Video error. Make sure you have chosen the correct video input.")
+            blank = Image.new("1", (self._width-40, 520), "white")
+            photo = ImageTk.PhotoImage(blank)
+            self.video_display.photo = photo
+            self.video_display.configure(text="", image=photo)
+
         self.root_tk.after(1, self.update_canvas)
 
 
