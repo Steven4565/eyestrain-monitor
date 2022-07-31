@@ -1,4 +1,4 @@
-from source.Sounds import *
+from source.utils.Reminder import *
 from source.utils.Config import AppConfig
 from source.rotated_rect_crop import *
 import csv
@@ -143,12 +143,12 @@ class AILogic:
         if (self.blink_interval > AppConfig.cfg["activity"]["max_blink_interval"]):
             self.blink_interval = 0
             self.prev_time = time.time()
-            Sounds.playBlink()
+            Reminder.remind_blink()
 
         # remind to take breaks
         if (self.since_face_entered_frame and time.time() - self.since_face_entered_frame > AppConfig.cfg["activity"]["max_session"] * self.break_reminder_count):
             self.break_reminder_count += 1
-            Sounds.playBreak()
+            Reminder.remind_break()
 
         exec_time = round((time.time() - self.last_frame_stamp), 5)
 

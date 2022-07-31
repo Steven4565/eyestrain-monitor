@@ -13,16 +13,16 @@ long_sound_blink = mixer.Sound("./sounds/voiceover_blink.wav")
 long_sound_break = mixer.Sound("./sounds/voiceover_break.wav")
 
 
-class Sounds:
+class Reminder:
 
-    def playBlink():
+    def remind_blink():
         reminder_config = AppConfig.cfg["activity"]["reminder_type"]
         if reminder_config == "VOICE":
             short_sound_blink.play()
         elif reminder_config == "VOICE_LONG":
             long_sound_blink.play()
 
-    def playBreak():
+    def remind_break():
         reminder_config = AppConfig.cfg["activity"]["reminder_type"]
         if reminder_config == "VOICE":
             short_sound_break.play()
