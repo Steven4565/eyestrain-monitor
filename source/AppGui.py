@@ -141,8 +141,9 @@ class AppGui:
                 AppConfig.cfg["video"]["show_camera"] = True
             else:
                 AppConfig.cfg["video"]["show_camera"] = False
+            self.update_canvas()
 
-        CTkSwitch(start_frame, text="Turn camera on",
+        CTkSwitch(start_frame, text="Toggle Camera",
                   command=toggle_camera, variable=switch_var).grid(column=1, row=2)
 
     def init_videostream(self, video_stream=0) -> bool:
@@ -176,14 +177,13 @@ class AppGui:
             else:
                 self.video_display.configure(
                     text="Video error. Make sure you have chosen the correct video input.")
+            self.root_tk.after(1, self.update_canvas)
 
         else:
             blank = Image.new("1", (self._width-40, 520), "white")
             photo = ImageTk.PhotoImage(blank)
             self.video_display.photo = photo
             self.video_display.configure(text="", image=photo)
-
-        self.root_tk.after(1, self.update_canvas)
 
 
 AppGuiInstance = AppGui()

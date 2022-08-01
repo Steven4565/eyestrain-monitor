@@ -12,15 +12,21 @@ def populate_settings_page(frame):
 
     entry = []
 
-    entry.append(NumberSetting(frame, 'Max Screen Session', 'desc', 0))
-    entry.append(NumberSetting(frame, 'Minimum Break Time', 'desc', 1))
-    entry.append(NumberSetting(frame, 'Max Blink Interval', 'desc', 2))
-    entry.append(NumberSetting(frame, 'AI Confidence Threshold', 'desc', 3))
-    entry.append(NumberSetting(frame, 'Eye Crop Height', 'desc', 4))
-    entry.append(OptionMenuSetting(frame, 'Reminder', 'desc', 5, [
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["max_session"], 'Max Screen Session', 'Longest period in front of the screen before you get notified to take a break\nValue is in integer and seconds. E.g. 10, 20, 5', 0))
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["min_break"], 'Minimum Break Time', 'The minimum amount of seconds you\'re out of the camera it takes for the program to register you as taking a breaks\nValue is in integer', 1))
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["max_blink_interval"], 'Max Blink Interval', 'Longest period in seconds between blinks before you get reminded to blink\nValue is in integer', 2))
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["ai_confidence_threshold"], 'AI Confidence Threshold', 'How confident the AI should think before classifying the the eyes as closed\nFill in value as a floating point number between 100 and 0 exclusive. E.g. 0.9 or 10.0', 3))
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["eye_crop_height"], 'Eye Crop Height', 'Height of eyes which will be cropped. This will affect how wide the AI thinks the eyes are opened\nValue is in integer between 20 to 60', 4))
+    entry.append(OptionMenuSetting(frame, 'Reminder', 'Types of reminders the program will use to remind you to blink and to take a break\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 5, [
         'Voice', 'Long Voice', 'Visual']))
 
     def on_save():
+        # Validate and get values
         max_session = validate_int(
             entry[0].get(), 'Max Session must be an integer')
         min_break = validate_int(
@@ -34,6 +40,7 @@ def populate_settings_page(frame):
         reminder_type = check_reminder_type(
             entry[5].get(), 'Please enter a valid option')
 
+        # Set values
         if (max_session):
             AppConfig.cfg["activity"]["max_session"] = max_session
         if (min_break):
@@ -49,6 +56,21 @@ def populate_settings_page(frame):
 
         AppConfig.save_config()
 
+        # Set placeholder text
+        entry[0].configure(
+            placeholder_text=AppConfig.cfg["activity"]["max_session"])
+        entry[1].configure(
+            placeholder_text=AppConfig.cfg["activity"]["min_break"])
+        entry[2].configure(
+            placeholder_text=AppConfig.cfg["activity"]["max_blink_interval"])
+        entry[3].configure(
+            placeholder_text=AppConfig.cfg["activity"]["ai_confidence_threshold"])
+        entry[4].configure(
+            placeholder_text=AppConfig.cfg["activity"]["eye_crop_height"])
+
+        frame.focus()
+
+        # Clear entries
         entry[0].delete(0, END)
         entry[1].delete(0, END)
         entry[2].delete(0, END)
@@ -56,7 +78,7 @@ def populate_settings_page(frame):
         entry[4].delete(0, END)
 
     CTkButton(master=frame, text="Save", command=on_save).grid(
-        sticky="e", pady=(0, 50))
+        sticky="e", pady=(0, 250))
 
 
 def validate_int(value, error_message):

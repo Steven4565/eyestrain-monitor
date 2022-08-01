@@ -84,13 +84,13 @@ def SettingsDesc(master, text):
     return label
 
 
-def NumberSetting(master, title, desc, order):
+def NumberSetting(master, placeholder_text, title, desc, order):
     SettingsLabel(master=master, text=title).grid(
         column=0, row=order*2, sticky='w')
     SettingsDesc(master=master, text=desc).grid(
         column=0, row=order*2+1, sticky='w', pady=(0, 10))
-    entry = CTkEntry(master=master, justify=RIGHT, width=100,
-                     textvariable=StringVar)
+    entry = CTkEntry(master=master, justify=RIGHT,
+                     width=100, placeholder_text=placeholder_text)
     entry.grid(column=1, row=order*2, sticky="e")
     return entry
 

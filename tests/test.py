@@ -1,81 +1,67 @@
-import sys
-from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import *
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtCore import *
+from tkinter import *
+from customtkinter import *
+from PIL import ImageTk, Image
+
+IMAGE_PATH = './assets/images/blink.png'
 
 
-class MyNotification(QMainWindow):
+class Overlay:
+    root = Toplevel()
 
     def __init__(self):
 
-        QMainWindow.__init__(self)
+        self.root.overrideredirect(True)
+        self.root.geometry("100x60+5+5")
+        self.root.lift()
+        self.root.wm_attributes("-topmost", True)
 
-        # < Styles >
-        self.background_style_css = "background-color: rgba(22, 160, 133, 100); border-radius: 4px;"
-        self.close_button_style_css = """
-                                        QPushButton{
-                                                    background-color: none;
-                                                    color: white; border-radius: 6px;
-                                                    font-size: 18px;
-                                                    }
-                                    """
-        # </ Styles >
+        img = ImageTk.PhotoImage(Image.open(IMAGE_PATH).resize((100, 60)))
+        image_panel = Label(self.root, image=img,
+                            highlightthickness=0, borderwidth=0)
+        image_panel.grid(sticky="news")
+        image_panel.configure(image=img)
+        image_panel.image = img
 
-        # < Global Settings >
-        self.setFixedSize(510, 210)
-        self.move(400, 30)
-        # </ Global Settings >
+        self.root.bind("<<CloseOverlay>>", self.close)
+        self.root.bind("<<HideOverlay>>", self.hide)
+        self.root.bind("<<ShowOverlay>>", self.show)
 
-        # < Main Style >
-        self.main_back = QLabel(self)
-        self.main_back.resize(500, 200)
-        self.main_back.setStyleSheet(self.background_style_css)
-        # </ Main Style >
+    def show(self, e):
+        self.root.deiconify()
 
-        # < Text Label >
-        self.text_label = QLabel(self)
-        self.text_label.move(10, 5)
-        self.text_label.resize(300, 100)
-        self.text_label.setText("Hi YUVI, How are You ? :)")
-        # < Text Label >
+    def hide(self, e):
+        self.root.withdraw()
 
-        # < Header Style >
-        self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
-        self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-
-        # This Line Set Your Window Always on To
-        self.setWindowFlags(Qt.SplashScreen | Qt.WindowStaysOnTopHint)
-        # </ Header Style >
-
-    def terminal_ask(self):
-
-        while True:
-
-            print("If you want to close this window, type stop: ")
-
-            get_input = input()
-
-            if get_input.lstrip().rstrip().lower() == "stop":
-                self.close_window()
-
-            else:
-                print("Invalid Syntax, Try it again.")
-
-            QApplication.processEvents()
-
-    def close_window(self):
-
-        self.close()
+    def close(self, e):
         sys.exit()
 
 
-if __name__ == '__main__':
+overlay = Overlay()
 
-    My_Application = QApplication(sys.argv)
-    MainWindow = MyNotification()
-    MainWindow.show()
-    MainWindow.terminal_ask()
-    sys.exit(My_Application.exec_())
+
+def close_overlay():
+    overlay.root.event_generate("<<CloseOverlay>>")
+
+
+def show_overlay():
+    overlay.root.event_generate("<<ShowOverlay>>")
+
+
+def hide_overlay():
+    overlay.root.event_generate("<<HideOverlay>>")
+
+
+root_tk = CTk()
+CTkButton(master=root_tk, text="Close", command=lambda: close_overlay()).grid()
+CTkButton(master=root_tk, text="Hide", command=lambda: hide_overlay()).grid()
+CTkButton(master=root_tk, text="Show", command=lambda: show_overlay()).grid()
+
+
+def on_close():
+    root_tk.destroy()
+    overlay.root.destroy()
+
+
+root_tk.protocol("WM_DELETE_WINDOW", on_close)
+
+root_tk.mainloop()
