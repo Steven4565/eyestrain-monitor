@@ -1,3 +1,6 @@
+from source.utils.Config import *
+from source.utils.ImageUtils import *
+from source.VideoCapture import *
 from source.Pages.ActivityPage import populate_activity_page
 from source.Pages.SettingsPage import populate_settings_page
 from source.CustomWidgets import MenuButton, MenuButtonTemplate, NotebookPage
@@ -5,12 +8,7 @@ from tkinter.ttk import Notebook, Style
 from source.AILogic import AIInstance
 from customtkinter import *
 from tkinter import *
-from PIL import ImageTk
-from PIL import Image
-
-from source.VideoCapture import *
-from source.utils.ImageUtils import *
-from source.utils.Config import *
+from PIL import ImageTk, Image
 
 
 class AppGui:
@@ -34,6 +32,7 @@ class AppGui:
         self._width = width
         self._height = height
         self.root_tk.resizable(False, False)
+        self.root_tk.protocol("WM_DELETE_WINDOW", self.on_window_close)
 
     def init_window(self, window_title: str):
         self.root_tk.geometry("{0}x{1}".format(self._width, self._height))
@@ -181,6 +180,10 @@ class AppGui:
             photo = ImageTk.PhotoImage(blank)
             self.video_display.photo = photo
             self.video_display.configure(text="", image=photo)
+
+    def on_window_close(self):
+        AIInstance.on_session_finish()
+        self.root_tk.destroy()
 
 
 AppGuiInstance = AppGui()

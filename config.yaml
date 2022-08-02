@@ -1,16 +1,11 @@
 activity:
   max_session: 1200
-  min_break: 10
+  min_break: 5
   max_blink_interval: 10
   ai_confidence_threshold: 0.9
-  eye_crop_height: 30
-  # reminder_type_values:
-  #   - NONE
-  #   - VISUAL
-  #   - VOICE
-  #   - VOICE_LONG
-  reminder_type: VOICE_LONG
+  eye_crop_height: 35
+  reminder_type: NONE
 video:
-  camera_index: 2
+  camera_index: 1
   show_camera: false
   debug_mode: true

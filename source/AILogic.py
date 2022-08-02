@@ -1,7 +1,8 @@
+from tensorflow.python.ops.numpy_ops import np_config
+from source.Database import database
 from source.utils.Reminder import *
 from source.utils.Config import AppConfig
 from source.rotated_rect_crop import *
-import csv
 import math
 import time
 import cv2 as cv
@@ -10,7 +11,7 @@ import mediapipe as mp
 import tensorflow as tf
 import tensorflow.keras as keras
 
-from tensorflow.python.ops.numpy_ops import np_config
+
 np_config.enable_numpy_behavior()
 
 faceMesh = mp.solutions.face_mesh.FaceMesh(
@@ -47,7 +48,8 @@ class AILogic:
         self.cropped_eye = None
 
         # for counting blinks
-        self.blink_count = [0]
+        self.blink_count = []
+        self.blink_count_buffer = 0
         self.prev_blink = False
         self.blinked = False
         self.prediction_new = 0
@@ -80,14 +82,15 @@ class AILogic:
         if not self.results.multi_face_landmarks:
             if (not self.since_face_left_frame):
                 self.since_face_left_frame = time.time()
+            # break starts
             if (time.time() - self.since_face_left_frame > AppConfig.cfg["activity"]["min_break"]):
                 self.since_face_entered_frame = None
                 self.start_timestamp = None
+
+                # insert to database if session has already started for 2 minutes
+                self.on_session_finish()
         # face shows on frame
         else:
-            if (self.since_face_left_frame and time.time() - self.since_face_left_frame > AppConfig.cfg["activity"]["min_break"]):
-                self.write_to_file(
-                    [[time.strftime('%H:%M', time.localtime()), 'break', round(time.time() - self.since_face_left_frame)]])
             self.since_face_left_frame = None
             if (not self.since_face_entered_frame):
                 self.since_face_entered_frame = time.time()
@@ -118,22 +121,22 @@ class AILogic:
 
         # handle per minute blink frequency
         if (self.since_face_entered_frame):
+            # timer every 60 seconds
             if (round(time.time() - self.start_timestamp) > 60):
                 self.start_timestamp = time.time()
-                self.blink_count.append(0)
+                date = time.strftime('%d', time.localtime())
+                hour = time.strftime('%H', time.localtime())
+                self.blink_count.append((date, hour, self.blink_count_buffer))
+                print(self.blink_count)
+                self.blink_count_buffer = 0
 
         # handle blinks
         if (self.blinked and self.prev_blink == False and self.blink_interval > 0.08):
-            self.blink_count[len(self.blink_count)-1] += 1
+            # TODO: add to blink count
+            self.blink_count_buffer += 1
             self.prev_blink = True
             self.blink_interval = 0
             self.prev_time = time.time()
-
-        # write session data to file
-        if (len(self.blink_count) > 5):
-            self.write_to_file(
-                [[time.strftime('%H:%M', time.localtime()), 'session', *self.blink_count[0:-1]]])
-            self.blink_count = [0]
 
         # blink duration
         if(not self.blinked and not self.prev_blink):
@@ -157,7 +160,7 @@ class AILogic:
                        cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
             cv.putText(self.imgRGB, 'exec time: ' + str(exec_time) + 'ms', (10, 250),
                        cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'count: ' + str(int(sum(self.blink_count))) + ('+' if self.blinked else ''),
+        cv.putText(self.imgRGB, 'count: ' + str(self.blink_count_buffer) + ('+' if self.blinked else ''),
                    (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         if (self.since_face_entered_frame):
             cv.putText(self.imgRGB, 'session time: ' + str(round(time.time() - self.since_face_entered_frame)) + 's',
@@ -228,8 +231,10 @@ class AILogic:
         except:
             return None
 
-    def write_to_file(self, array):
-        csv.writer(self.f, delimiter=',').writerows(array)
+    def on_session_finish(self):
+        if (len(self.blink_count) >= 1):
+            self.blink_count = []
+            database.insert_session_entries(self.blink_count)
 
 
 AIInstance = AILogic()

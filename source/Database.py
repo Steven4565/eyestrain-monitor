@@ -1,3 +1,4 @@
+from random import random
 import sqlite3
 import time
 
@@ -8,17 +9,16 @@ class Database:
         self.cur = self.con.cursor()
         self.cur.execute("PRAGMA foreign_keys = 1")
 
-
     def create_tables(self):
         self.cur.execute(
-            '''CREATE TABLE session(
+            '''CREATE TABLE IF NOT EXISTS session(
                 session_id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                datetime TEXT
+                datetime TEXT    
                 )
             '''
         )
         self.cur.execute(
-            '''CREATE TABLE session_entries(
+            '''CREATE TABLE IF NOT EXISTS session_entries(
                 session_entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 session_id INTEGER, 
                 date INTEGER, 
@@ -30,33 +30,63 @@ class Database:
         )
 
     def insert_session(self):
-        print('insert session')
-        self.cur.execute('INSERT INTO session (datetime) VALUES (?)', (time.strftime('%x %H:%M', time.localtime()),))
+        self.cur.execute(
+            'INSERT INTO session (datetime) VALUES (datetime(\'now\'))')
+        self.con.commit()
+        return self.cur.lastrowid
+
+    def insert_session_entry(self, session_id, date, hour, blink_count):
+        self.cur.execute('INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)',
+                         (session_id, date, hour, blink_count))
         self.con.commit()
 
-    def insert_session_entry(self):
-        print('insert session entry')
-        self.cur.execute('INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)', (self.cur.lastrowid, 12, 5, 100))
+    def insert_session_entries(self, array):
+        session_id = self.insert_session()
+        new_array = [(session_id, *entry) for entry in array]
+        # print(array)
+        # print('=======')
+        # print(new_array)
+        self.cur.executemany(
+            'INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)', new_array)
         self.con.commit()
 
-    def log_sessions(self):
-        res = self.cur.execute('SELECT * FROM session')
-        print(res.fetchall())
-    
-    def log_session_entries(self):
-        res = self.cur.execute('SELECT * FROM session_entries')
-        print(res.fetchall())
+    def get_last_session(self):
+        return self.cur.execute(
+            'SELECT blink_count FROM session_entries WHERE session_id = (SELECT session_id FROM session ORDER BY session_id DESC LIMIT 1)')
 
-    def save(self):
-        self.con.commit()
+    def get_average(self, date):
+        return self.cur.execute('SELECT hour, AVG(blink_count) FROM session_entries WHERE date=? GROUP BY hour', (date,))
 
     def close(self):
         self.con.close()
 
+    def log_sessions(self):
+        res = self.cur.execute('SELECT * FROM session')
+        print(res.fetchall())
+
+    def log_session_entries(self):
+        res = self.cur.execute('SELECT * FROM session_entries')
+        print(res.fetchall())
+
+    def reset(self):
+        self.cur.execute('DELETE FROM session_entries')
+        self.cur.execute('DELETE FROM session')
+        self.con.commit()
+
+
 database = Database()
-# database.create_tables()
-# database.insert_session()
-# database.insert_session_entry()
+database.create_tables()
+database.reset()
+
+# session_id = database.insert_session()
+# database.insert_session_entry(session_id, 12, 5, 100)
+# date = time.strftime('%d', time.localtime())
+# hour = time.strftime('%H', time.localtime())
+
+# mock_entry = []
+# for i in range(5):
+#     mock_entry.append((date, hour, round(random() * 25 + 25)))
+# database.insert_session_entries(mock_entry)
+
 database.log_sessions()
 database.log_session_entries()
-database.close()
