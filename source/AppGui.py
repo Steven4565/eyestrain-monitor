@@ -1,6 +1,3 @@
-from turtle import bgcolor
-
-from numpy import true_divide
 from source.Pages.ActivityPage import populate_activity_page
 from source.Pages.SettingsPage import populate_settings_page
 from source.CustomWidgets import MenuButton, MenuButtonTemplate, NotebookPage

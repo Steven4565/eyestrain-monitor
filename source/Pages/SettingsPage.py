@@ -23,7 +23,7 @@ def populate_settings_page(frame):
     entry.append(NumberSetting(
         frame, AppConfig.cfg["activity"]["eye_crop_height"], 'Eye Crop Height', 'Height of eyes which will be cropped. This will affect how wide the AI thinks the eyes are opened\nValue is in integer between 20 to 60', 4))
     entry.append(OptionMenuSetting(frame, 'Reminder', 'Types of reminders the program will use to remind you to blink and to take a break\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 5, [
-        'Voice', 'Long Voice', 'Visual']))
+        'None', 'Voice', 'Long Voice', 'Visual']))
 
     def on_save():
         # Validate and get values
@@ -104,7 +104,9 @@ def validate_float(value, error_message):
 
 
 def check_reminder_type(value, error_message):
-    if value == 'Voice':
+    if value == 'None':
+        return 'NONE'
+    elif value == 'Voice':
         return 'VOICE'
     elif value == 'Long Voice':
         return 'VOICE_LONG'

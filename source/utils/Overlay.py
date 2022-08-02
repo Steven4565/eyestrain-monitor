@@ -80,4 +80,4 @@ class Overlay:
         sys.exit()
 
 
-overlay = Overlay()
+# overlay = Overlay()
