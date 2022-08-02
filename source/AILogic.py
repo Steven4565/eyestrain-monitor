@@ -233,8 +233,9 @@ class AILogic:
 
     def on_session_finish(self):
         if (len(self.blink_count) >= 1):
-            self.blink_count = []
+            print(self.blink_count)
             database.insert_session_entries(self.blink_count)
+            self.blink_count = []
 
 
 AIInstance = AILogic()

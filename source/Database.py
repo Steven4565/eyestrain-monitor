@@ -35,27 +35,20 @@ class Database:
         self.con.commit()
         return self.cur.lastrowid
 
-    def insert_session_entry(self, session_id, date, hour, blink_count):
-        self.cur.execute('INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)',
-                         (session_id, date, hour, blink_count))
-        self.con.commit()
-
     def insert_session_entries(self, array):
         session_id = self.insert_session()
         new_array = [(session_id, *entry) for entry in array]
-        # print(array)
-        # print('=======')
-        # print(new_array)
+        print(new_array)
         self.cur.executemany(
             'INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)', new_array)
         self.con.commit()
 
     def get_last_session(self):
         return self.cur.execute(
-            'SELECT blink_count FROM session_entries WHERE session_id = (SELECT session_id FROM session ORDER BY session_id DESC LIMIT 1)')
+            'SELECT blink_count FROM session_entries WHERE session_id = (SELECT session_id FROM session ORDER BY session_id DESC LIMIT 1)').fetchall()
 
     def get_average(self, date):
-        return self.cur.execute('SELECT hour, AVG(blink_count) FROM session_entries WHERE date=? GROUP BY hour', (date,))
+        return self.cur.execute('SELECT hour, AVG(blink_count) FROM session_entries WHERE date=? GROUP BY hour', (date,)).fetchall()
 
     def close(self):
         self.con.close()
@@ -76,7 +69,7 @@ class Database:
 
 database = Database()
 database.create_tables()
-database.reset()
+# database.reset()
 
 # session_id = database.insert_session()
 # database.insert_session_entry(session_id, 12, 5, 100)
@@ -90,3 +83,6 @@ database.reset()
 
 database.log_sessions()
 database.log_session_entries()
+
+print(database.get_average(2).fetchall())
+print(database.get_last_session().fetchall())
