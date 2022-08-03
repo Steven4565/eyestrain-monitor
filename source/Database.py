@@ -38,17 +38,25 @@ class Database:
     def insert_session_entries(self, array):
         session_id = self.insert_session()
         new_array = [(session_id, *entry) for entry in array]
-        print(new_array)
         self.cur.executemany(
             'INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)', new_array)
         self.con.commit()
 
     def get_last_session(self):
-        return self.cur.execute(
+        raw_session_data = self.cur.execute(
             'SELECT blink_count FROM session_entries WHERE session_id = (SELECT session_id FROM session ORDER BY session_id DESC LIMIT 1)').fetchall()
+        session_data = [blink_count[0] for blink_count in raw_session_data]
+        return session_data
 
     def get_average(self, date):
-        return self.cur.execute('SELECT hour, AVG(blink_count) FROM session_entries WHERE date=? GROUP BY hour', (date,)).fetchall()
+        raw_day_average = self.cur.execute(
+            'SELECT hour, AVG(blink_count) FROM session_entries WHERE date=? GROUP BY hour', (date,)).fetchall()
+        day_average = {}
+        for i in range(24):
+            day_average[i+1] = 0
+        for (hour, average) in raw_day_average:
+            day_average[hour] = average
+        return day_average
 
     def close(self):
         self.con.close()
@@ -81,8 +89,8 @@ database.create_tables()
 #     mock_entry.append((date, hour, round(random() * 25 + 25)))
 # database.insert_session_entries(mock_entry)
 
-database.log_sessions()
-database.log_session_entries()
+# database.log_sessions()
+# database.log_session_entries()
 
-print(database.get_average(2).fetchall())
-print(database.get_last_session().fetchall())
+# print(database.get_average(2))
+# print(database.get_last_session())
