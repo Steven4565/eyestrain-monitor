@@ -29,13 +29,13 @@ class VideoCapture:
             camera = cv2.VideoCapture(dev_port)
             if not camera.isOpened():
                 non_working_ports.append(dev_port)
-                print("Port %s is not working." % dev_port)
+                #print("Port %s is not working." % dev_port)
             else:
                 is_reading, img = camera.read()
                 w = camera.get(3)
                 h = camera.get(4)
                 if is_reading:
-                    print("Port %s is working and reads images (%s x %s)" %
+                    print("Camera port %s is working and reads images (%s x %s)" %
                           (dev_port, h, w))
                     working_ports.append(dev_port)
                 else:
@@ -52,7 +52,7 @@ class VideoCapture:
             return (success, None)
 
         if not success:
-            print("Ignoring empty camera frame.")
+            #print("Ignoring empty camera frame.")
             return (success, None)
 
         return (success, image)
