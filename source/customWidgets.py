@@ -3,24 +3,24 @@ from customtkinter import *
 from tkinter import *
 
 
-def MenuButtonTemplate(root, font, color=['#23a8f2', '#1b85bf', "#212325", "#43474b"]):
+def MenuButtonTemplate(root, font, color=['#5c6d77', '#23a8f2']):
     return lambda text, onClick, selected=None: MenuButton(root, text, font, onClick, color, selected)
 
 
-def MenuButton(root, text, font, onClick, color=['#23a8f2', '#1b85bf'], selected=False):
-    label = Label(root, pady=10, padx=60, text=text, font=(font))
+def MenuButton(root, text, font, onClick, color=['#5c6d77', '#23a8f2'], selected=False):
+    label = Label(root, text=text, font=(font))
     isSelected = selected
     label.config(foreground=color[0], background='#212325')
 
     def onSelect(e):
         nonlocal isSelected
         isSelected = True
-        label.config(foreground=color[1], background=color[3])
+        label.config(foreground=color[1])
 
     def onDeSelect(e):
         nonlocal isSelected
         isSelected = False
-        label.config(foreground=color[0], background=color[2])
+        label.config(foreground=color[0])
 
     # On creation
     if selected:
@@ -29,9 +29,9 @@ def MenuButton(root, text, font, onClick, color=['#23a8f2', '#1b85bf'], selected
     # Bind the Enter and Leave Events to the Button
     label.bind('<ButtonRelease-1>', lambda e: onClick())
     label.bind('<Leave>', lambda e: not isSelected and label.config(
-        foreground=color[0], background=color[2]))
+        foreground=color[0]))
     label.bind('<Enter>', lambda e: label.config(
-        foreground=color[1], background=color[3]))
+        foreground=color[1]))
 
     label.bind("<<MenuSelect>>", onSelect)
     label.bind("<<MenuDeSelect>>", onDeSelect)
@@ -67,9 +67,12 @@ def NotebookPage(root, width, height):
 
     def _on_mousewheel(event):
         scrollbar_canvas.yview_scroll(round(-1*(event.delta/120)), "units")
-    content_frame.bind_all("<MouseWheel>", _on_mousewheel)
 
-    return (page_frame, content_frame)
+    # let's handle this on the thing that lets select things.
+    # TODO: unspahget this part
+    #content_frame.bind_all("<MouseWheel>", _on_mousewheel)
+
+    return (page_frame, content_frame, _on_mousewheel)
 
 
 def SettingsLabel(master, text):

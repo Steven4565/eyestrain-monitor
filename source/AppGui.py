@@ -1,3 +1,4 @@
+from time import time_ns
 from source.utils.Config import *
 from source.utils.ImageUtils import *
 from source.VideoCapture import *
@@ -19,6 +20,7 @@ class AppGui:
     _width: int
     _menu_font: str = "Helvetica 16 bold"
     _current_page: int
+    _page_scroll_handlers: list
 
     _menu_bg_color: str
     _active_menu_bg_color: str
@@ -33,6 +35,25 @@ class AppGui:
         self._height = height
         self.root_tk.resizable(False, False)
         self.root_tk.protocol("WM_DELETE_WINDOW", self.on_window_close)
+    
+    def app_loop(self):
+        self.init_videostream()
+
+        next_video_poll = time_ns()
+
+        while True:
+            cur_ns = time_ns()
+            self.root_tk.update_idletasks()
+            
+            if (next_video_poll <= cur_ns):
+                # Try to match video FPS
+                process_time_start = time_ns()
+                self.update_canvas()
+                process_time_took = time_ns() - process_time_start
+                next_video_poll = min(
+                    0, self._video_fps_ns-process_time_took) + time_ns()
+
+            self.root_tk.update()
 
     def init_window(self, window_title: str):
         self.root_tk.geometry("{0}x{1}".format(self._width, self._height))
@@ -42,8 +63,8 @@ class AppGui:
 
     def init_menu(self):
         self.Menu = CTkFrame(
-            master=self.root_tk, width=self._width, height=75, corner_radius=0, fg_color="#212325")
-        self.Menu.grid(row=0, column=0, sticky="NEWS")
+            master=self.root_tk, width=self._width, height=40, corner_radius=0, fg_color="#212325")
+        self.Menu.grid(row=0, column=0, sticky="NEWS", pady=(20,0))
 
         self.Menu.grid_columnconfigure(0, weight=1)
         self.Menu.grid_columnconfigure(1, weight=1)
@@ -78,23 +99,30 @@ class AppGui:
             "TNotebook.Tab", background="#212325", borderwidth=0)
         noteStyle.map("TNotebook", background=[("selected", "#212325")])
 
-        self.note = Notebook(self.root_tk, padding=25)
-        self.note.grid(column=0, row=1, stick="NEWS")
+        self.note = Notebook(self.root_tk)
+        self.note.grid(column=0, row=1, stick="NEWS", padx=25, pady=(15,25))
 
         self.note.bind("<<NotebookTabChanged>>", onTabChange)
+
+        def _on_mousewheel(event):
+            if (len(self._page_scroll_handlers) > last_tab):
+                self._page_scroll_handlers[last_tab](event)
+
+        # Bind the spinny event
+        self.root_tk.bind_all("<MouseWheel>", _on_mousewheel)
 
     def init_pages(self):
 
         # initialize each page with scroll
-        activity_page, activity_frame = NotebookPage(
+        activity_page, activity_frame, _scroll_handler1 = NotebookPage(
             self.note, self._width, self._height - 105)
         self.note.add(activity_page)
 
-        start_page, start_frame = NotebookPage(
+        start_page, start_frame, _scroll_handler2 = NotebookPage(
             self.note, self._width, self._height - 105)
         self.note.add(start_page)
 
-        settings_page, settings_frame = NotebookPage(
+        settings_page, settings_frame, _scroll_handler3 = NotebookPage(
             self.note, self._width, self._height - 105)
         self.note.add(settings_page)
 
@@ -102,8 +130,10 @@ class AppGui:
         populate_activity_page(activity_frame)
         populate_settings_page(settings_frame)
 
-        # ============== START PAGE ==============
-
+        # Hook up the spinny part of your mouse
+        self._page_scroll_handlers = [_scroll_handler1, _scroll_handler2, _scroll_handler3]
+        
+    # ============== START PAGE ==============
     def populate_start_page(self, start_frame):
         # To expand the canvas
         CTkFrame(master=start_frame, width=750, height=0).grid(
@@ -173,7 +203,6 @@ class AppGui:
             else:
                 self.video_display.configure(
                     text="Video error. Make sure you have chosen the correct video input.")
-            self.root_tk.after(1, self.update_canvas)
 
         else:
             blank = Image.new("1", (self._width-40, 520), "white")
