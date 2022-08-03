@@ -88,7 +88,7 @@ def validate_int(value, error_message):
     try:
         return int(value)
     except ValueError:
-        messagebox.showerror(error_message)
+        messagebox.showerror("Error", error_message)
         return False
 
 
@@ -99,7 +99,7 @@ def validate_float(value, error_message):
     try:
         return float(value)
     except ValueError:
-        messagebox.showerror(error_message)
+        messagebox.showerror("Error", error_message)
         return False
 
 
@@ -113,5 +113,5 @@ def check_reminder_type(value, error_message):
     elif value == 'Visual':
         return "VISUAL"
     else:
-        messagebox.showerror(error_message)
+        messagebox.showerror("Error", error_message)
         return False
