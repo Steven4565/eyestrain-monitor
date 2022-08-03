@@ -232,10 +232,11 @@ class AILogic:
             return None
 
     def on_session_finish(self):
-        if (len(self.blink_count) >= 1):
+        if (len(self.blink_count) >= 1):  # TODO: change this to more than 1 min
             print(self.blink_count)
             database.insert_session_entries(self.blink_count)
             self.blink_count = []
+            Reminder.notify_blink_average(database.get_session_average())
 
 
 AIInstance = AILogic()

@@ -4,8 +4,9 @@ activity:
   max_blink_interval: 10
   ai_confidence_threshold: 0.9
   eye_crop_height: 35
-  reminder_type: NONE
+  blink_reminder_type: NONE
+  break_reminder_type: NONE
 video:
   camera_index: 1
-  show_camera: false
+  show_camera: true
   debug_mode: true

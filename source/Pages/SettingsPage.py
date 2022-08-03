@@ -22,7 +22,9 @@ def populate_settings_page(frame):
         frame, AppConfig.cfg["activity"]["ai_confidence_threshold"], 'AI Confidence Threshold', 'How confident the AI should think before classifying the the eyes as closed\nFill in value as a floating point number between 100 and 0 exclusive. E.g. 0.9 or 10.0', 3))
     entry.append(NumberSetting(
         frame, AppConfig.cfg["activity"]["eye_crop_height"], 'Eye Crop Height', 'Height of eyes which will be cropped. This will affect how wide the AI thinks the eyes are opened\nValue is in integer between 20 to 60', 4))
-    entry.append(OptionMenuSetting(frame, 'Reminder', 'Types of reminders the program will use to remind you to blink and to take a break\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 5, [
+    entry.append(OptionMenuSetting(frame, 'Blink Reminder', 'Reminds you to blink after you haven\'t blinked for "Max Blink Interval" seconds.\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 5, [
+        'None', 'Voice', 'Long Voice', 'Visual']))
+    entry.append(OptionMenuSetting(frame, 'Break Reminder', 'Reminds you to take a break after "Max Screen Session" seconds.\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 6, [
         'None', 'Voice', 'Long Voice', 'Visual']))
 
     def on_save():
@@ -37,8 +39,10 @@ def populate_settings_page(frame):
             entry[3].get(), 'AI Confidence Threshold must be a float')
         eye_crop_height = validate_int(
             entry[4].get(), 'Eye Crop Height must be an integer')
-        reminder_type = check_reminder_type(
+        blink_reminder_type = check_reminder_type(
             entry[5].get(), 'Please enter a valid option')
+        break_reminder_type = check_reminder_type(
+            entry[6].get(), 'Please enter a valid option')
 
         # Set values
         if (max_session):
@@ -50,9 +54,11 @@ def populate_settings_page(frame):
         if (ai_confidence_threshold):
             AppConfig.cfg["activity"]["ai_confidence_threshold"] = ai_confidence_threshold
         if (eye_crop_height):
-            AppConfig.cfg["activity"]["eye_crop_height"] = ai_confidence_threshold
-        if (reminder_type):
-            AppConfig.cfg["activity"]["reminder_type"] = reminder_type
+            AppConfig.cfg["activity"]["eye_crop_height"] = eye_crop_height
+        if (blink_reminder_type):
+            AppConfig.cfg["activity"]["blink_reminder_type"] = blink_reminder_type
+        if (break_reminder_type):
+            AppConfig.cfg["activity"]["break_reminder_type"] = break_reminder_type
 
         AppConfig.save_config()
 
@@ -78,7 +84,7 @@ def populate_settings_page(frame):
         entry[4].delete(0, END)
 
     CTkButton(master=frame, text="Save", command=on_save).grid(
-        sticky="e", pady=(0, 250))
+        sticky="e", pady=(0, 300))
 
 
 def validate_int(value, error_message):

@@ -35,7 +35,7 @@ class AppGui:
         self._height = height
         self.root_tk.resizable(False, False)
         self.root_tk.protocol("WM_DELETE_WINDOW", self.on_window_close)
-    
+
     def app_loop(self):
         self.init_videostream()
 
@@ -44,7 +44,7 @@ class AppGui:
         while True:
             cur_ns = time_ns()
             self.root_tk.update_idletasks()
-            
+
             if (next_video_poll <= cur_ns):
                 # Try to match video FPS
                 process_time_start = time_ns()
@@ -64,7 +64,7 @@ class AppGui:
     def init_menu(self):
         self.Menu = CTkFrame(
             master=self.root_tk, width=self._width, height=40, corner_radius=0, fg_color="#212325")
-        self.Menu.grid(row=0, column=0, sticky="NEWS", pady=(20,0))
+        self.Menu.grid(row=0, column=0, sticky="NEWS", pady=(20, 0))
 
         self.Menu.grid_columnconfigure(0, weight=1)
         self.Menu.grid_columnconfigure(1, weight=1)
@@ -100,7 +100,7 @@ class AppGui:
         noteStyle.map("TNotebook", background=[("selected", "#212325")])
 
         self.note = Notebook(self.root_tk)
-        self.note.grid(column=0, row=1, stick="NEWS", padx=25, pady=(15,25))
+        self.note.grid(column=0, row=1, stick="NEWS", padx=25, pady=(15, 25))
 
         self.note.bind("<<NotebookTabChanged>>", onTabChange)
 
@@ -131,8 +131,9 @@ class AppGui:
         populate_settings_page(settings_frame)
 
         # Hook up the spinny part of your mouse
-        self._page_scroll_handlers = [_scroll_handler1, _scroll_handler2, _scroll_handler3]
-        
+        self._page_scroll_handlers = [
+            _scroll_handler1, _scroll_handler2, _scroll_handler3]
+
     # ============== START PAGE ==============
     def populate_start_page(self, start_frame):
         # To expand the canvas

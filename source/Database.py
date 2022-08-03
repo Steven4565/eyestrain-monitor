@@ -58,8 +58,14 @@ class Database:
             day_average[hour] = average
         return day_average
 
+    def get_session_average(self):
+        last_session_data = self.get_last_session()
+        return sum(last_session_data) / len(last_session_data)
+
     def close(self):
         self.con.close()
+
+    # ========== DEBUGGING ==========
 
     def log_sessions(self):
         res = self.cur.execute('SELECT * FROM session')
@@ -77,6 +83,9 @@ class Database:
 
 database = Database()
 database.create_tables()
+
+# ========== DEBUGGING ==========
+
 # database.reset()
 
 # session_id = database.insert_session()
