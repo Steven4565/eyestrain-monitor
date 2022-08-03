@@ -156,7 +156,7 @@ class AILogic:
         exec_time = round((time.time() - self.last_frame_stamp), 5)
 
         if (AppConfig.cfg["video"]["debug_mode"]):
-            cv.putText(self.imgRGB, 'percent opened ' + str(self.prediction_new), (10, 50),
+            cv.putText(self.imgRGB, 'percent opened ' + str(int(self.prediction_new)), (10, 50),
                        cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
             cv.putText(self.imgRGB, 'exec time: ' + str(exec_time) + 'ms', (10, 250),
                        cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)

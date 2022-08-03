@@ -22,7 +22,7 @@ def main():
 
     AppGuiInstance.init_videostream(AppConfig.cfg["video"]["camera_index"])
     AppGuiInstance.update_canvas()
-    AppGuiInstance.root_tk.mainloop()
+    AppGuiInstance.app_loop()
 
 
 if __name__ == '__main__':
