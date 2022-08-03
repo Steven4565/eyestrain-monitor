@@ -39,21 +39,20 @@ def populate_activity_page(frame: CTkFrame):
         cmap.set_under('0.75')
 
         # ======== Axes 2 ========
-        average = database.get_average(2)
         ax2.set_title('Average Blink Per Minute')
 
         # ======== Axes 3 ========
-
-        session_data = database.get_last_session()
         ax3.set_title('Latest Session Blink Per Minute')
         
         # Axes 1
         ax1.plot([7]*2, [0,1], 'w')
 
         # Axes 2
+        average = database.get_average(2)
         ax2.bar(average.keys(), average.values())
 
         # Axes 3
+        session_data = database.get_last_session()
         ax3.bar(np.arange(len(session_data)), session_data)
 
         canvas.draw()
