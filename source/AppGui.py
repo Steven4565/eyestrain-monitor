@@ -212,7 +212,12 @@ class AppGui:
 
     def on_window_close(self):
         AIInstance.on_session_finish()
-        self.root_tk.destroy()
+
+        print("App window closed. Sending exit.")
+        try:
+            sys.exit(0)
+        except SystemExit:
+            os._exit(0)
 
 
 AppGuiInstance = AppGui()
