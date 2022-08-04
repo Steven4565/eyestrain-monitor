@@ -124,10 +124,12 @@ class AILogic:
             # timer every 60 seconds
             if (round(time.time() - self.start_timestamp) > 60):
                 self.start_timestamp = time.time()
+                year = time.strftime('%Y', time.localtime())
+                month = time.strftime('%m', time.localtime())
                 date = time.strftime('%d', time.localtime())
                 hour = time.strftime('%H', time.localtime())
-                self.blink_count.append((date, hour, self.blink_count_buffer))
-                print(self.blink_count)
+                self.blink_count.append(
+                    (year, month, date, hour, self.blink_count_buffer))
                 self.blink_count_buffer = 0
 
         # handle blinks
@@ -236,5 +238,7 @@ class AILogic:
             print(self.blink_count)
             database.insert_session_entries(self.blink_count)
             self.blink_count = []
-            Reminder.notify_blink_average(database.get_session_average())
+            session_average = database.get_session_average()
+            if (session_average):
+                Reminder.notify_blink_average(session_average)
             self.root_tk.event_generate('<<SessionFinish>>', when="tail")

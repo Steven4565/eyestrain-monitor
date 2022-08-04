@@ -1,3 +1,4 @@
+import time
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg)
 from customtkinter import *
@@ -38,20 +39,22 @@ class ActivityPage:
 
     def populate_values(self):
         # ======== Axes 1 ========
+        session_average = database.get_session_average()
         cmap = mpl.cm.cool
         norm = mpl.colors.Normalize(vmin=0, vmax=75)
         cb1 = mpl.colorbar.ColorbarBase(self.ax1, cmap=cmap,
                                         norm=norm,
                                         orientation='horizontal')
-        self.ax1.plot(
-            [min(75, database.get_session_average())]*2, [0, 1], 'w', linewidth=3)
-
+        if (session_average):
+            self.ax1.plot(
+                [min(75, database.get_session_average())]*2, [0, 1], 'w', linewidth=3)
         cb1.set_label('Last Session\'s blink average')
 
         # ======== Axes 2 ========
         yesterday_date = (date.today() - timedelta(days=1)).strftime('%d')
-        average = database.get_average(
-            yesterday_date)
+        year = time.strftime('%Y', time.localtime())
+        month = time.strftime('%m', time.localtime())
+        average = database.get_average(year, month, yesterday_date)
         self.ax2.bar(average.keys(), average.values())
         self.ax2.set_title('Average Blink Per Minute Past 24 hours')
         self.ax2.set_xticks(np.arange(1, 25, 1.0))
@@ -61,23 +64,25 @@ class ActivityPage:
         # ======== Axes 3 ========
         session_data = database.get_last_session()
 
-        x3 = np.arange(1, len(session_data)+1)
-        y3 = session_data
+        if (session_data):
+            x3 = np.arange(1, len(session_data)+1)
+            y3 = session_data
 
-        color = next(self.ax3._get_lines.prop_cycler)['color']
+            color = next(self.ax3._get_lines.prop_cycler)['color']
 
-        if (len(session_data) > 2):
-            spline = make_interp_spline(x3, y3)
-            x3hat = np.linspace(x3.min(), x3.max(), 500)
-            y3hat = spline(x3hat)
-            self.ax3.plot(x3hat, y3hat, color=color)
-            self.ax3.fill_between(x=x3hat, y1=y3hat, color=color, alpha=0.2)
+            if (len(session_data) > 2):  # TODO: for debugging purposes only
+                spline = make_interp_spline(x3, y3)
+                x3hat = np.linspace(x3.min(), x3.max(), 500)
+                y3hat = spline(x3hat)
+                self.ax3.plot(x3hat, y3hat, color=color)
+                self.ax3.fill_between(
+                    x=x3hat, y1=y3hat, color=color, alpha=0.2)
 
-        self.ax3.plot(x3, y3, "o", color=color)
+            self.ax3.plot(x3, y3, "o", color=color)
 
-        self.ax3.set_title('Latest Session Blink Per Minute')
-        self.ax3.set_xlabel('Minutes')
-        self.ax3.set_ylabel('Blink Count')
+            self.ax3.set_title('Latest Session Blink Per Minute')
+            self.ax3.set_xlabel('Minutes')
+            self.ax3.set_ylabel('Blink Count')
 
         self.canvas.draw()
 
@@ -92,7 +97,11 @@ class ActivityPage:
 
     def get_remark_message(self):
         # TODO: check if the database is empty or not
-        remark = Reminder.get_remarks(database.get_session_average())
+        session_average = database.get_session_average()
+        if (not session_average):
+            return 'Please record a session to see the average blinks per minute on the last session'
+
+        remark = Reminder.get_remarks(session_average)
 
         if (remark == 'bad'):
             return 'You have not blinked enough. Please blink more'

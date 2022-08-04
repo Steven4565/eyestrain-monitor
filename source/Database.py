@@ -21,6 +21,8 @@ class Database:
             '''CREATE TABLE IF NOT EXISTS session_entries(
                 session_entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 session_id INTEGER, 
+                year INTEGER, 
+                month INTEGER,
                 date INTEGER, 
                 hour INTEGER, 
                 blink_count INTEGER,
@@ -39,28 +41,37 @@ class Database:
         session_id = self.insert_session()
         new_array = [(session_id, *entry) for entry in array]
         self.cur.executemany(
-            'INSERT INTO session_entries (session_id, date, hour, blink_count) VALUES (?,?,?,?)', new_array)
+            'INSERT INTO session_entries (session_id, year, month, date, hour, blink_count) VALUES (?,?,?,?,?,?)', new_array)
         self.con.commit()
 
     def get_last_session(self):
         raw_session_data = self.cur.execute(
             'SELECT blink_count FROM session_entries WHERE session_id = (SELECT session_id FROM session ORDER BY session_id DESC LIMIT 1)').fetchall()
         session_data = [blink_count[0] for blink_count in raw_session_data]
-        return session_data
+        if (len(session_data) > 0):
+            return session_data
+        else:
+            return False
 
-    def get_average(self, date):
+    def get_average(self, year, month, date):
         raw_day_average = self.cur.execute(
-            'SELECT hour, AVG(blink_count) FROM session_entries WHERE date=? GROUP BY hour', (date,)).fetchall()
+            'SELECT hour, AVG(blink_count) FROM session_entries WHERE year=? AND month=? AND date=? GROUP BY hour', (year, month, date,)).fetchall()
         day_average = {}
         for i in range(24):
             day_average[i+1] = 0
         for (hour, average) in raw_day_average:
             day_average[hour] = average
-        return day_average
+        if (len(day_average) > 0):
+            return day_average
+        else:
+            return False
 
     def get_session_average(self):
         last_session_data = self.get_last_session()
-        return sum(last_session_data) / len(last_session_data)
+        if (last_session_data):
+            return sum(last_session_data) / len(last_session_data)
+        else:
+            return False
 
     def close(self):
         self.con.close()
@@ -90,6 +101,8 @@ database.create_tables()
 
 # session_id = database.insert_session()
 # database.insert_session_entry(session_id, 12, 5, 100)
+# year = time.strftime('%Y', time.localtime())
+# month = time.strftime('%m', time.localtime())
 # date = time.strftime('%d', time.localtime())
 # hour = time.strftime('%H', time.localtime())
 

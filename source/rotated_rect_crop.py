@@ -111,7 +111,6 @@ def crop_rectangle(image, rect):
     num_cols = image.shape[1]
 
     if not inside_rect(rect = rect, num_cols = num_cols, num_rows = num_rows):
-        print("Proposed rectangle is not fully in the image.")
         return None
 
     rect_center = rect[0]
