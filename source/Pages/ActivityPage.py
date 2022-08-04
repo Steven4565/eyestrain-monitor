@@ -73,6 +73,7 @@ class ActivityPage:
 
         self.ax3.plot(x3, y3, "o", color=color)
         self.ax3.plot(x3hat, y3hat, color=color)
+        self.ax3.fill_between(x=x3hat, y1=y3hat, color=color, alpha=0.2)
 
         self.ax3.set_title('Latest Session Blink Per Minute')
         self.ax3.set_xlabel('Minutes')
