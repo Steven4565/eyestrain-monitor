@@ -1,3 +1,4 @@
+import sys
 import webbrowser
 import pygame
 from tkinter import *
@@ -43,6 +44,12 @@ class Reminder:
             pass
 
     def notify_blink_average(average):
+        # Return if not windows 10
+        if (sys.platform != 'win32'):
+            return
+        if sys.getwindowsversion().build > 20000:
+            return
+
         remarks = Reminder.get_remarks(average)
         message = ''
 

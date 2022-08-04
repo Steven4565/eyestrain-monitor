@@ -2,7 +2,7 @@ from time import time_ns
 from source.utils.Config import *
 from source.utils.ImageUtils import *
 from source.VideoCapture import *
-from source.Pages.ActivityPage import populate_activity_page
+from source.Pages.ActivityPage import ActivityPage
 from source.Pages.SettingsPage import populate_settings_page
 from source.CustomWidgets import MenuButton, MenuButtonTemplate, NotebookPage
 from tkinter.ttk import Notebook, Style
@@ -126,8 +126,9 @@ class AppGui:
             self.note, self._width, self._height - 105)
         self.note.add(settings_page)
 
+        ActivityPageInstance = ActivityPage(frame=activity_frame)
+        ActivityPageInstance.populate_values()
         self.populate_start_page(start_frame)
-        populate_activity_page(activity_frame)
         populate_settings_page(settings_frame)
 
         # Hook up the spinny part of your mouse
