@@ -1,4 +1,3 @@
-from turtle import window_width
 from customtkinter import *
 from tkinter import *
 
@@ -63,7 +62,7 @@ def NotebookPage(root, width, height):
         scrollbar_canvas)
 
     scrollbar_canvas.create_window(
-        (0, 0), window=content_frame, anchor="nw")
+        (0, 0), window=content_frame, anchor="nw", width=page_frame["width"]-80)
 
     def _on_mousewheel(event):
         scrollbar_canvas.yview_scroll(round(-1*(event.delta/120)), "units")
