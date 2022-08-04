@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from source.utils.Reminder import Reminder
 import source.utils.SimpleColor as SimpleColor
+from datetime import date, timedelta
 
 
 class ActivityPage:
@@ -36,7 +37,7 @@ class ActivityPage:
     def populate_values(self):
         # ======== Axes 1 ========
         cmap = mpl.cm.cool
-        norm = mpl.colors.Normalize(vmin=5, vmax=10)
+        norm = mpl.colors.Normalize(vmin=0, vmax=75)
         cb1 = mpl.colorbar.ColorbarBase(self.ax1, cmap=cmap,
                                         norm=norm,
                                         orientation='horizontal')
@@ -50,15 +51,18 @@ class ActivityPage:
         self.ax3.set_title('Latest Session Blink Per Minute')
 
         # Axes 1
-        self.ax1.plot([7]*2, [0, 1], 'w')
+        self.ax1.plot([min(75, database.get_session_average())]
+                      * 2, [0, 1], 'w')
 
         # Axes 2
-        average = database.get_average(2)  # TODO: get the proper date
+        yesterday_date = (date.today() - timedelta(days=1)).strftime('%d')
+        average = database.get_average(
+            yesterday_date)
         self.ax2.bar(average.keys(), average.values())
 
         # Axes 3
         session_data = database.get_last_session()
-        self.ax3.bar(np.arange(len(session_data)), session_data)
+        self.ax3.bar(np.arange(1, len(session_data)+1), session_data)
 
         self.canvas.draw()
 
