@@ -21,8 +21,8 @@ class ActivityPage:
 
         fig = plt.figure(figsize=(6, 9), facecolor=frame["bg"])
         self.ax1 = fig.add_axes([0.05, 0.95, 0.9, 0.05])
-        self.ax2 = fig.add_axes([0.05, 0.50, 0.9, 0.35])
-        self.ax3 = fig.add_axes([0.05, 0.05, 0.9, 0.35])
+        self.ax2 = fig.add_axes([0.10, 0.50, 0.8, 0.35])
+        self.ax3 = fig.add_axes([0.10, 0.05, 0.8, 0.35])
 
         self.canvas = FigureCanvasTkAgg(fig, master=frame)
 
@@ -30,6 +30,7 @@ class ActivityPage:
             master=frame, text=self.get_remark_message())
         self.remark_label.pack()
         CTkButton(master=frame, text="Refresh", command=self.on_refresh).pack()
+
         # customtkinter's scaling tracker wth
         self.canvas.get_tk_widget().pack(fill="x", pady=(
             20, (ScalingTracker.get_widget_scaling(self.canvas.get_tk_widget())-1)*1000))
@@ -43,34 +44,32 @@ class ActivityPage:
         cb1 = mpl.colorbar.ColorbarBase(self.ax1, cmap=cmap,
                                         norm=norm,
                                         orientation='horizontal')
+        self.ax1.plot(
+            [min(75, database.get_session_average())]*2, [0, 1], 'w', linewidth=3)
 
-        cb1.set_label('Blink Per Minute Frequency')
+        cb1.set_label('Last Session\'s blink average')
 
         # ======== Axes 2 ========
-        self.ax2.set_title('Average Blink Per Minute')
-
-        # ======== Axes 3 ========
-        self.ax3.set_title('Latest Session Blink Per Minute')
-
-        # Axes 1
-        self.ax1.plot([min(75, database.get_session_average())]
-                      * 2, [0, 1], 'w')
-
-        # Axes 2
         yesterday_date = (date.today() - timedelta(days=1)).strftime('%d')
         average = database.get_average(
             yesterday_date)
         self.ax2.bar(average.keys(), average.values())
+        self.ax2.set_title('Average Blink Per Minute Past 24 hours')
+        self.ax2.set_xticks(np.arange(1, 25, 1.0))
+        self.ax2.set_xlabel('Hours')
+        self.ax2.set_ylabel('Average Blinks Per Hour')
 
-        # Axes 3
+        # ======== Axes 3 ========
         session_data = database.get_last_session()
-        self.ax3.bar(np.arange(1, len(session_data)+1), session_data)
+        self.ax3.plot(np.arange(1, len(session_data)+1),
+                      session_data, marker="o")
+        self.ax3.set_title('Latest Session Blink Per Minute')
+        self.ax3.set_xlabel('Minutes')
+        self.ax3.set_ylabel('Blink Count')
 
         self.canvas.draw()
 
     def on_refresh(self):
-        # TODO: update the color bar
-
         remark_message = self.get_remark_message()
         self.remark_label.configure(text=remark_message)
 
