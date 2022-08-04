@@ -8,8 +8,7 @@ import time
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
-import tensorflow as tf
-import tensorflow.keras as keras
+import keras
 
 
 np_config.enable_numpy_behavior()

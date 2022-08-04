@@ -35,8 +35,6 @@ class ActivityPage:
         self.canvas.get_tk_widget().pack(fill="x", pady=(
             20, (ScalingTracker.get_widget_scaling(self.canvas.get_tk_widget())-1)*1000))
 
-        self.populate_values()
-
     def populate_values(self):
         # ======== Axes 1 ========
         cmap = mpl.cm.cool
