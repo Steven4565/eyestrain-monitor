@@ -38,8 +38,6 @@ class AppGui:
         self.AIInstance = AILogic(self.root_tk)
 
     def app_loop(self):
-        self.init_videostream()
-
         next_video_poll = time_ns()
 
         while True:
@@ -174,12 +172,19 @@ class AppGui:
                 AppConfig.cfg["video"]["show_camera"] = True
             else:
                 AppConfig.cfg["video"]["show_camera"] = False
+            AppConfig.save_config()
             self.update_canvas()
 
-        CTkSwitch(start_frame, text="Toggle Camera",
-                  command=toggle_camera, variable=switch_var).grid(column=1, row=2)
+        toggle_camera_switch = CTkSwitch(start_frame, text="Toggle Camera",
+                                         command=toggle_camera, variable=switch_var)
+        toggle_camera_switch.grid(column=1, row=2)
+        if AppConfig.cfg["video"]["show_camera"]:
+            toggle_camera_switch.select()
+        else:
+            toggle_camera_switch.deselect()
 
     def init_videostream(self, video_stream=0) -> bool:
+        print(video_stream)
         try:
             self.vid = VideoCapture(video_stream)
             self._video_fps_ns = 1000000/self.vid.get_fps()
