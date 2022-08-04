@@ -17,7 +17,7 @@ def populate_activity_page(frame: CTkFrame):
     mpl.rcParams["xtick.color"] = mpl_color
     mpl.rcParams["ytick.color"] = mpl_color
 
-    fig = plt.figure(figsize=(6, 9), facecolor=frame["bg"])
+    fig = plt.figure(figsize=(7.2, 9), facecolor=frame["bg"])
     ax1 = fig.add_axes([0.05, 0.95, 0.9, 0.05])
     ax2 = fig.add_axes([0.05, 0.50, 0.9, 0.35])
     ax3 = fig.add_axes([0.05, 0.05, 0.9, 0.35])
@@ -66,6 +66,9 @@ def populate_activity_page(frame: CTkFrame):
         pass
 
     CTkButton(master=frame, text="Refresh", command=on_refresh).pack()
-    canvas.get_tk_widget().pack(fill="x", pady=(20, 0))
+    # customtkinter's scaling tracker wth
+    canvas.get_tk_widget().pack(fill="x", pady=(20, (ScalingTracker.get_widget_scaling(canvas.get_tk_widget())-1)*1000))
+
+    
 
     populate_values()
