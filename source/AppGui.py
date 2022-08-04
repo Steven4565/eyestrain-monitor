@@ -185,7 +185,6 @@ class AppGui:
             toggle_camera_switch.deselect()
 
     def init_videostream(self, video_stream=0) -> bool:
-        print(video_stream)
         try:
             self.vid = VideoCapture(video_stream)
             self._video_fps_ns = 1000000/self.vid.get_fps()

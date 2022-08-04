@@ -4,7 +4,7 @@ import pygame
 from tkinter import *
 from os import environ
 from pygame import mixer
-from win10toast_click import ToastNotifier
+
 # from source.utils.Overlay import OverlayInstance
 
 from source.utils.Config import AppConfig
@@ -23,6 +23,7 @@ is_win10 = False
 
 if (sys.platform == 'win32' and sys.getwindowsversion().build <= 20000):
     is_win10 = True
+    from win10toast_click import ToastNotifier
     toaster = ToastNotifier()
 
 
