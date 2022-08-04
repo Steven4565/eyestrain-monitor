@@ -63,17 +63,17 @@ class ActivityPage:
 
         x3 = np.arange(1, len(session_data)+1)
         y3 = session_data
-        
-
-        spline = make_interp_spline(x3,y3)
-        x3hat = np.linspace(x3.min(), x3.max(), 500)
-        y3hat = spline(x3hat)
 
         color = next(self.ax3._get_lines.prop_cycler)['color']
 
+        if (len(session_data) > 2):
+            spline = make_interp_spline(x3, y3)
+            x3hat = np.linspace(x3.min(), x3.max(), 500)
+            y3hat = spline(x3hat)
+            self.ax3.plot(x3hat, y3hat, color=color)
+            self.ax3.fill_between(x=x3hat, y1=y3hat, color=color, alpha=0.2)
+
         self.ax3.plot(x3, y3, "o", color=color)
-        self.ax3.plot(x3hat, y3hat, color=color)
-        self.ax3.fill_between(x=x3hat, y1=y3hat, color=color, alpha=0.2)
 
         self.ax3.set_title('Latest Session Blink Per Minute')
         self.ax3.set_xlabel('Minutes')

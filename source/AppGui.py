@@ -6,7 +6,7 @@ from source.Pages.ActivityPage import ActivityPage
 from source.Pages.SettingsPage import populate_settings_page
 from source.CustomWidgets import MenuButton, MenuButtonTemplate, NotebookPage
 from tkinter.ttk import Notebook, Style
-from source.AILogic import AIInstance
+from source.AILogic import AILogic
 from customtkinter import *
 from tkinter import *
 from PIL import ImageTk, Image
@@ -35,6 +35,7 @@ class AppGui:
         self._height = height
         self.root_tk.resizable(False, False)
         self.root_tk.protocol("WM_DELETE_WINDOW", self.on_window_close)
+        self.AIInstance = AILogic(self.root_tk)
 
     def app_loop(self):
         self.init_videostream()
@@ -126,10 +127,14 @@ class AppGui:
             self.note, self._width, self._height - 105)
         self.note.add(settings_page)
 
-        ActivityPageInstance = ActivityPage(frame=activity_frame)
+        ActivityPageInstance = ActivityPage(
+            frame=activity_frame)
         ActivityPageInstance.populate_values()
         self.populate_start_page(start_frame)
         populate_settings_page(settings_frame)
+
+        self.root_tk.bind('<<SessionFinish>>',
+                          lambda e: ActivityPageInstance.on_refresh())
 
         # Hook up the spinny part of your mouse
         self._page_scroll_handlers = [
@@ -191,7 +196,7 @@ class AppGui:
                 success, frame = self.vid.get_frame()
 
                 if success:
-                    imageResult = AIInstance.process_frame(frame)
+                    imageResult = self.AIInstance.process_frame(frame)
                     imageResult = image_resize(
                         imageResult, width=self._width-90)
 
@@ -213,7 +218,7 @@ class AppGui:
             self.video_display.configure(text="", image=photo)
 
     def on_window_close(self):
-        AIInstance.on_session_finish()
+        self.AIInstance.on_session_finish()
 
         print("App window closed. Sending exit.")
         try:

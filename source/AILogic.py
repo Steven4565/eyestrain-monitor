@@ -37,8 +37,9 @@ def detect_blink(eye_img):
 
 
 class AILogic:
-    def __init__(self):
+    def __init__(self, root_tk):
         self.frame = None
+        self.root_tk = root_tk
 
         self.imgRGB = None
         self.results = []
@@ -236,6 +237,4 @@ class AILogic:
             database.insert_session_entries(self.blink_count)
             self.blink_count = []
             Reminder.notify_blink_average(database.get_session_average())
-
-
-AIInstance = AILogic()
+            self.root_tk.event_generate('<<SessionFinish>>', when="tail")
