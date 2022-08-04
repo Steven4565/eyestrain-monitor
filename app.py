@@ -1,6 +1,10 @@
 import sys
 import os
 
+# Mute pygame's messages and suppress OpenCV's complaints.
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+os.environ["OPENCV_LOG_LEVEL"] = "FATAL"
+
 # AI Imports
 from source.rotated_rect_crop import *
 from source.VideoCapture import *
@@ -29,7 +33,7 @@ if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print('Interrupted')
+        print('App closed by keyboard interrupt.')
         try:
             sys.exit(0)
         except SystemExit:
