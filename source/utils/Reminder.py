@@ -16,9 +16,14 @@ short_sound_break = mixer.Sound("./assets/sounds/short_break.wav")
 long_sound_blink = mixer.Sound("./assets/sounds/voiceover_blink.wav")
 long_sound_break = mixer.Sound("./assets/sounds/voiceover_break.wav")
 
-
-toaster = ToastNotifier()
+toaster = None
 app_icon = ''
+
+is_win10 = False
+
+if (sys.platform == 'win32' and sys.getwindowsversion().build <= 20000):
+    is_win10 = True
+    toaster = ToastNotifier()
 
 
 class Reminder:
@@ -44,10 +49,7 @@ class Reminder:
             pass
 
     def notify_blink_average(average):
-        # Return if not windows 10
-        if (sys.platform != 'win32'):
-            return
-        if sys.getwindowsversion().build > 20000:
+        if (not is_win10):
             return
 
         remarks = Reminder.get_remarks(average)
