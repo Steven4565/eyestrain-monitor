@@ -2,7 +2,7 @@ from tkinter import messagebox
 from customtkinter import *
 from tkinter import *
 from source.utils.Config import AppConfig
-from source.CustomWidgets import NumberSetting, OptionMenuSetting, SettingsDesc, SettingsLabel
+from source.CustomWidgets import NumberSetting, OptionMenuSetting
 
 
 def populate_settings_page(frame):

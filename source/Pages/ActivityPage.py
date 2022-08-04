@@ -101,7 +101,6 @@ class ActivityPage:
         self.populate_values()
 
     def get_remark_message(self):
-        # TODO: check if the database is empty or not
         session_average = database.get_session_average()
         if (not session_average):
             return 'Please record a session to see the average blinks per minute on the last session'

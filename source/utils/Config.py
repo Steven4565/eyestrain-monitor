@@ -3,8 +3,6 @@ from tkinter import messagebox
 import sys
 import yaml
 
-# TODO: Better Error handling/message box???
-
 
 class AppConfigClass:
     _file_name: str

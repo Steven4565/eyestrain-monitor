@@ -1,4 +1,3 @@
-from tensorflow.python.ops.numpy_ops import np_config
 from source.Database import database
 from source.utils.Reminder import *
 from source.utils.Config import AppConfig
@@ -10,8 +9,6 @@ import numpy as np
 import mediapipe as mp
 import keras
 
-
-np_config.enable_numpy_behavior()
 
 faceMesh = mp.solutions.face_mesh.FaceMesh(
     max_num_faces=3, min_detection_confidence=0.5, min_tracking_confidence=0.5)
@@ -69,9 +66,6 @@ class AILogic:
 
         # fps counter
         self.last_frame_stamp = 0
-
-        # open filestream for saving data
-        self.f = open("blink_data.csv", "a", newline="")
 
     def process_frame(self, frame) -> cv2.Mat:
         self.imgRGB = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
@@ -134,7 +128,6 @@ class AILogic:
 
         # handle blinks
         if (self.blinked and self.prev_blink == False and self.blink_interval > 0.08):
-            # TODO: add to blink count
             self.blink_count_buffer += 1
             self.prev_blink = True
             self.blink_interval = 0
@@ -234,7 +227,7 @@ class AILogic:
             return None
 
     def on_session_finish(self):
-        if (len(self.blink_count) >= 1):  # TODO: change this to more than 1 min
+        if (len(self.blink_count) >= 3):
             print(self.blink_count)
             database.insert_session_entries(self.blink_count)
             self.blink_count = []
