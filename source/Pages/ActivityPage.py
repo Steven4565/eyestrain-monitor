@@ -75,7 +75,7 @@ class ActivityPage:
 
             color = next(self.ax3._get_lines.prop_cycler)['color']
 
-            if (len(session_data) > 2):  # TODO: for debugging purposes only
+            if (len(session_data) > 3):  # TODO: for debugging purposes only
                 spline = make_interp_spline(x3, y3)
                 x3hat = np.linspace(x3.min(), x3.max(), 500)
                 y3hat = spline(x3hat)

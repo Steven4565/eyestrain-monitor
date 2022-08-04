@@ -1,3 +1,9 @@
+from tensorflow.python.ops.numpy_ops import np_config
+from source.CustomWidgets import *
+from source.utils.Config import *
+from source.AppGui import *
+from source.VideoCapture import *
+from source.rotated_rect_crop import *
 import sys
 import os
 
@@ -5,14 +11,8 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 os.environ["OPENCV_LOG_LEVEL"] = "FATAL"
 
-# AI Imports
-from source.rotated_rect_crop import *
-from source.VideoCapture import *
-from source.AppGui import *
-from source.utils.Config import *
-
-# Tkinter imports
-from source.CustomWidgets import *
+# For eagertensor
+np_config.enable_numpy_behavior()
 
 
 def main():

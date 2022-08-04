@@ -227,7 +227,7 @@ class AILogic:
             return None
 
     def on_session_finish(self):
-        if (len(self.blink_count) >= 3):
+        if (len(self.blink_count) >= 5):  # Only insert to database if session time has been 5 mins or more
             print(self.blink_count)
             database.insert_session_entries(self.blink_count)
             self.blink_count = []

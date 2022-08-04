@@ -12,6 +12,8 @@ from customtkinter import *
 from tkinter import *
 from PIL import ImageTk, Image
 
+app_icon = './assets/images/icon.ico'
+
 
 class AppGui:
     # Declare variables & types
@@ -37,6 +39,7 @@ class AppGui:
         self.root_tk.resizable(False, False)
         self.root_tk.protocol("WM_DELETE_WINDOW", self.on_window_close)
         self.AIInstance = AILogic(self.root_tk)
+        self.root_tk.iconbitmap(app_icon)
 
     def app_loop(self):
         next_video_poll = time_ns()

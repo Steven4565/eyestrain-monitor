@@ -17,7 +17,7 @@ long_sound_blink = mixer.Sound("./assets/sounds/voiceover_blink.wav")
 long_sound_break = mixer.Sound("./assets/sounds/voiceover_break.wav")
 
 toaster = None
-app_icon = ''
+app_icon = './assets/images/icon.ico'
 
 is_win10 = False
 
@@ -78,16 +78,16 @@ class Reminder:
                     round(average), message),
                 duration=10,
                 callback_on_click=on_notif_click,
-                threaded=True
-                # icon_path=app_icon,
+                threaded=True,
+                icon_path=app_icon
             )
         toaster.show_toast(
             title='Here\'s your blink report for this session',
             msg='You have blinked {0} amount of times per minute average. {1}'.format(
                 round(average), message),
             duration=10,
-            threaded=True
-            # icon_path=app_icon,
+            threaded=True,
+            icon_path=app_icon,
         )
 
     def get_remarks(average):
