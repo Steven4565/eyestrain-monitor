@@ -4,7 +4,8 @@ from source.utils.ImageUtils import *
 from source.VideoCapture import *
 from source.Pages.ActivityPage import ActivityPage
 from source.Pages.SettingsPage import populate_settings_page
-from source.CustomWidgets import MenuButton, MenuButtonTemplate, NotebookPage
+from source.CustomWidgets import MenuButtonTemplate, NotebookPage
+import source.utils.SimpleColor as SimpleColor
 from tkinter.ttk import Notebook, Style
 from source.AILogic import AILogic
 from customtkinter import *
@@ -217,7 +218,8 @@ class AppGui:
                     text="Video error. Make sure you have chosen the correct video input.")
 
         else:
-            blank = Image.new("1", (self._width-40, 520), "white")
+            blank = Image.new("1", (self._width-40, 520),
+                              SimpleColor.window_bg)
             photo = ImageTk.PhotoImage(blank)
             self.video_display.photo = photo
             self.video_display.configure(text="", image=photo)

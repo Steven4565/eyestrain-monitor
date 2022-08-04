@@ -26,6 +26,11 @@ class ActivityPage:
         self.ax2 = fig.add_axes([0.10, 0.50, 0.8, 0.35])
         self.ax3 = fig.add_axes([0.10, 0.05, 0.8, 0.35])
 
+        bg_color = SimpleColor.window_bg
+        self.ax1.set_facecolor(bg_color)
+        self.ax2.set_facecolor(bg_color)
+        self.ax3.set_facecolor(bg_color)
+
         self.canvas = FigureCanvasTkAgg(fig, master=frame)
 
         self.remark_label = CTkLabel(
