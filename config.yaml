@@ -8,5 +8,5 @@ activity:
   break_reminder_type: NONE
 video:
   camera_index: 0
-  show_camera: false
+  show_camera: true
   debug_mode: false

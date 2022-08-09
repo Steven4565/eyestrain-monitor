@@ -45,6 +45,7 @@ class AILogic:
         self.cropped_eye = None
 
         # for counting blinks
+        self.session_blink_count  = 0
         self.blink_count = []
         self.blink_count_buffer = 0
         self.prev_blink = False
@@ -149,20 +150,19 @@ class AILogic:
             Reminder.remind_break()
 
         exec_time = round((time.time() - self.last_frame_stamp), 5)
-
+        cv.putText(self.imgRGB, 'Blink Count: ' + str(self.blink_count_buffer + sum([x[4] for x in self.blink_count])),
+                   (10, 50), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        if (self.since_face_entered_frame):
+            cv.putText(self.imgRGB, 'Session Time: ' + str(round(time.time() - self.since_face_entered_frame)) + 's',
+                       (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
+        if (self.since_face_left_frame):
+            cv.putText(self.imgRGB, 'Break Time: {0}/{1}s'.format(str(round(time.time() - self.since_face_left_frame)), str(
+                AppConfig.cfg["activity"]["min_break"])), (10, 150), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
         if (AppConfig.cfg["video"]["debug_mode"]):
-            cv.putText(self.imgRGB, 'percent opened ' + str(int(self.prediction_new)), (10, 50),
+            cv.putText(self.imgRGB, 'percent opened ' + str(int(self.prediction_new)), (10, 200),
                        cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
             cv.putText(self.imgRGB, 'exec time: ' + str(exec_time) + 'ms', (10, 250),
                        cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        cv.putText(self.imgRGB, 'count: ' + str(self.blink_count_buffer) + ('+' if self.blinked else ''),
-                   (10, 100), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        if (self.since_face_entered_frame):
-            cv.putText(self.imgRGB, 'session time: ' + str(round(time.time() - self.since_face_entered_frame)) + 's',
-                       (10, 150), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
-        if (self.since_face_left_frame):
-            cv.putText(self.imgRGB, 'break time: {0}/{1}s'.format(str(round(time.time() - self.since_face_left_frame)), str(
-                AppConfig.cfg["activity"]["min_break"])), (10, 200), cv.FONT_HERSHEY_SIMPLEX, FONT_SIZE, FONT_COLOR, 2)
 
         return self.imgRGB
 
@@ -185,7 +185,6 @@ class AILogic:
         # get the angle of the eyes
         m_left_x, m_left_y = coords_left[0]
         m_right_x, m_right_y = coords_right[0]
-        # TODO: this crashes the program if the head's angle is over 90 degrees
         delta_x = (m_left_x-m_right_x)
         delta_y = (m_left_y-m_right_y)
         if (delta_x):
@@ -236,7 +235,6 @@ class AILogic:
         if (len(self.blink_count) >= 5):  # Only insert to database if session time has been 5 mins or more
             print(self.blink_count)
             database.insert_session_entries(self.blink_count)
-            self.blink_count = []
             session_average = database.get_session_average()
             if (session_average):
                 Reminder.notify_blink_average(session_average)
