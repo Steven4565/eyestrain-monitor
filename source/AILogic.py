@@ -185,8 +185,14 @@ class AILogic:
         # get the angle of the eyes
         m_left_x, m_left_y = coords_left[0]
         m_right_x, m_right_y = coords_right[0]
-        m = (m_left_y-m_right_y) / (m_left_x-m_right_x)
-        angle_in_degrees = math.degrees(math.atan(m))
+        # TODO: this crashes the program if the head's angle is over 90 degrees
+        delta_x = (m_left_x-m_right_x)
+        delta_y = (m_left_y-m_right_y)
+        if (delta_x):
+            m =  delta_y/ delta_x
+            angle_in_degrees = math.degrees(math.atan(m))
+        else:
+            angle_in_degrees = 90.0
 
         # get width of left eye and right eye
         width_left = abs(coords_left[0][0]-coords_left[1][0])
@@ -200,7 +206,6 @@ class AILogic:
         height = width * \
             AppConfig.cfg["activity"]["eye_crop_height"] / IMG_SIZE[0]
 
-        # TODO: this crashes the program if the head's angle is over 90 degrees
         rect = (((coords[0][0]+coords[1][0])//2, (coords[0][1]+coords[1]
                 [1])//2), (int(width), int(height)), angle_in_degrees)
 
