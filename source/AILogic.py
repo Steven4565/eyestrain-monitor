@@ -200,6 +200,7 @@ class AILogic:
         height = width * \
             AppConfig.cfg["activity"]["eye_crop_height"] / IMG_SIZE[0]
 
+        # TODO: this crashes the program if the head's angle is over 90 degrees
         rect = (((coords[0][0]+coords[1][0])//2, (coords[0][1]+coords[1]
                 [1])//2), (int(width), int(height)), angle_in_degrees)
 

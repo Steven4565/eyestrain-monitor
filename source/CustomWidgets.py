@@ -2,11 +2,11 @@ from customtkinter import *
 from tkinter import *
 
 
-def MenuButtonTemplate(root, font, color=['#5c6d77', '#23a8f2']):
+def MenuButtonTemplate(root, font, color=['#5c6d77', '#23a8f2', '#1c86c1']):
     return lambda text, onClick, selected=None: MenuButton(root, text, font, onClick, color, selected)
 
 
-def MenuButton(root, text, font, onClick, color=['#5c6d77', '#23a8f2'], selected=False):
+def MenuButton(root, text, font, onClick, color=['#5c6d77', '#23a8f2','#1c86c1'], selected=False):
     label = Label(root, text=text, font=(font))
     isSelected = selected
     label.config(foreground=color[0], background='#212325')
@@ -27,10 +27,10 @@ def MenuButton(root, text, font, onClick, color=['#5c6d77', '#23a8f2'], selected
 
     # Bind the Enter and Leave Events to the Button
     label.bind('<ButtonRelease-1>', lambda e: onClick())
-    label.bind('<Leave>', lambda e: not isSelected and label.config(
-        foreground=color[0]))
+    label.bind('<Leave>', lambda e: label.config(
+        foreground=color[0]) if not isSelected else label.config(foreground=color[1])) 
     label.bind('<Enter>', lambda e: label.config(
-        foreground=color[1]))
+        foreground=color[2]))
 
     label.bind("<<MenuSelect>>", onSelect)
     label.bind("<<MenuDeSelect>>", onDeSelect)
