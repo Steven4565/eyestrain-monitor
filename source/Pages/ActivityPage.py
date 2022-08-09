@@ -23,7 +23,7 @@ class ActivityPage:
 
         fig = plt.figure(figsize=(6, 9), facecolor=frame["bg"])
         self.ax1 = fig.add_axes([0.05, 0.95, 0.9, 0.05])
-        self.ax2 = fig.add_axes([0.10, 0.50, 0.8, 0.35])
+        self.ax2 = fig.add_axes([0.10, 0.50, 0.8, 0.35])    
         self.ax3 = fig.add_axes([0.10, 0.05, 0.8, 0.35])
 
         bg_color = SimpleColor.window_bg
@@ -34,7 +34,7 @@ class ActivityPage:
         self.canvas = FigureCanvasTkAgg(fig, master=frame)
 
         self.remark_label = CTkLabel(
-            master=frame, text=self.get_remark_message())
+            master=frame, text=self.get_remark_message(), text_font=('Helvetika', 18, 'bold'))
         self.remark_label.pack()
 
         # customtkinter's scaling tracker wth

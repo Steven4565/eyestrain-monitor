@@ -1,10 +1,10 @@
 activity:
   max_session: 1200
   min_break: 5
-  max_blink_interval: 10
+  max_blink_interval: 5
   ai_confidence_threshold: 0.9
   eye_crop_height: 35
-  blink_reminder_type: NONE
+  blink_reminder_type: VOICE
   break_reminder_type: NONE
 video:
   camera_index: 0
