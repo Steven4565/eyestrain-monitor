@@ -36,7 +36,6 @@ class ActivityPage:
         self.remark_label = CTkLabel(
             master=frame, text=self.get_remark_message())
         self.remark_label.pack()
-        CTkButton(master=frame, text="Refresh", command=self.on_refresh).pack()
 
         # customtkinter's scaling tracker wth
         self.canvas.get_tk_widget().pack(fill="x", pady=(
