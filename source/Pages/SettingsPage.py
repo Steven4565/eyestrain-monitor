@@ -17,14 +17,14 @@ def populate_settings_page(frame):
         frame, AppConfig.cfg["activity"]["min_break"], 'Minimum Break Time', 'The minimum amount of seconds you\'re out of the camera it takes for the program to register you as taking a breaks\nValue is in integer', 1))
     entry.append(NumberSetting(
         frame, AppConfig.cfg["activity"]["max_blink_interval"], 'Max Blink Interval', 'Longest period in seconds between blinks before you get reminded to blink\nValue is in integer', 2))
-    entry.append(NumberSetting(
-        frame, AppConfig.cfg["activity"]["ai_confidence_threshold"], 'AI Confidence Threshold', 'How confident the AI should think before classifying the the eyes as closed\nFill in value as a floating point number between 100 and 0 exclusive. E.g. 0.9 or 10.0', 3))
-    entry.append(NumberSetting(
-        frame, AppConfig.cfg["activity"]["eye_crop_height"], 'Eye Crop Height', 'Height of eyes which will be cropped. This will affect how wide the AI thinks the eyes are opened\nValue is in integer between 20 to 60', 4))
-    entry.append(OptionMenuSetting(frame, 'Blink Reminder', 'Reminds you to blink after you haven\'t blinked for "Max Blink Interval" seconds.\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 5, [
+    entry.append(OptionMenuSetting(frame, 'Blink Reminder', 'Reminds you to blink after you haven\'t blinked for "Max Blink Interval" seconds.\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 3, [
         'None', 'Voice', 'Long Voice', 'Visual']))
-    entry.append(OptionMenuSetting(frame, 'Break Reminder', 'Reminds you to take a break after "Max Screen Session" seconds.\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 6, [
+    entry.append(OptionMenuSetting(frame, 'Break Reminder', 'Reminds you to take a break after "Max Screen Session" seconds.\nVoice: Plays a short voice message\nLong Voice: Plays a sentence\n Visual: Displays a screen overlay (WIP)', 4, [
         'None', 'Voice', 'Long Voice', 'Visual']))
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["ai_confidence_threshold"], 'AI Confidence Threshold', 'How confident the AI should think before classifying the the eyes as closed\nFill in value as a floating point number between 100 and 0 exclusive. E.g. 0.9 or 10.0', 5))
+    entry.append(NumberSetting(
+        frame, AppConfig.cfg["activity"]["eye_crop_height"], 'Eye Crop Height', 'Height of eyes which will be cropped. This will affect how wide the AI thinks the eyes are opened\nValue is in integer between 20 to 60', 6))
 
     def on_save():
         # Validate and get values
@@ -34,14 +34,14 @@ def populate_settings_page(frame):
             entry[1].get(), 'Min break must be an integer')
         max_blink_interval = validate_int(
             entry[2].get(), 'max blink interval must be an integer')
-        ai_confidence_threshold = validate_float(
-            entry[3].get(), 'AI Confidence Threshold must be a float')
-        eye_crop_height = validate_int(
-            entry[4].get(), 'Eye Crop Height must be an integer')
         blink_reminder_type = check_reminder_type(
-            entry[5].get(), 'Please enter a valid option')
+            entry[3].get(), 'Please enter a valid option')
         break_reminder_type = check_reminder_type(
-            entry[6].get(), 'Please enter a valid option')
+            entry[4].get(), 'Please enter a valid option')
+        ai_confidence_threshold = validate_float(
+            entry[5].get(), 'AI Confidence Threshold must be a float')
+        eye_crop_height = validate_int(
+            entry[6].get(), 'Eye Crop Height must be an integer')
 
         # Set values
         if (max_session):
@@ -50,14 +50,14 @@ def populate_settings_page(frame):
             AppConfig.cfg["activity"]["min_break"] = min_break
         if (max_blink_interval):
             AppConfig.cfg["activity"]["max_blink_interval"] = max_blink_interval
-        if (ai_confidence_threshold):
-            AppConfig.cfg["activity"]["ai_confidence_threshold"] = ai_confidence_threshold
-        if (eye_crop_height):
-            AppConfig.cfg["activity"]["eye_crop_height"] = eye_crop_height
         if (blink_reminder_type):
             AppConfig.cfg["activity"]["blink_reminder_type"] = blink_reminder_type
         if (break_reminder_type):
             AppConfig.cfg["activity"]["break_reminder_type"] = break_reminder_type
+        if (ai_confidence_threshold):
+            AppConfig.cfg["activity"]["ai_confidence_threshold"] = ai_confidence_threshold
+        if (eye_crop_height):
+            AppConfig.cfg["activity"]["eye_crop_height"] = eye_crop_height
 
         AppConfig.save_config()
 
@@ -68,9 +68,9 @@ def populate_settings_page(frame):
             placeholder_text=AppConfig.cfg["activity"]["min_break"])
         entry[2].configure(
             placeholder_text=AppConfig.cfg["activity"]["max_blink_interval"])
-        entry[3].configure(
+        entry[5].configure(
             placeholder_text=AppConfig.cfg["activity"]["ai_confidence_threshold"])
-        entry[4].configure(
+        entry[6].configure(
             placeholder_text=AppConfig.cfg["activity"]["eye_crop_height"])
 
         frame.focus()
@@ -79,11 +79,11 @@ def populate_settings_page(frame):
         entry[0].delete(0, END)
         entry[1].delete(0, END)
         entry[2].delete(0, END)
-        entry[3].delete(0, END)
-        entry[4].delete(0, END)
+        entry[5].delete(0, END)
+        entry[6].delete(0, END)
 
     CTkButton(master=frame, text="Save", command=on_save).grid(
-        sticky="e", pady=(0, 300))
+        sticky="e", pady=(0, 320))
 
 
 def validate_int(value, error_message):

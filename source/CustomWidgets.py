@@ -91,9 +91,8 @@ def NumberSetting(master, placeholder_text, title, desc, order):
         column=0, row=order*2, sticky='w')
     SettingsDesc(master=master, text=desc).grid(
         column=0, row=order*2+1, sticky='w', pady=(0, 10))
-    textvariable = StringVar(master, placeholder_text) 
     entry = CTkEntry(master=master, justify=RIGHT,
-                     width=100, placeholder_text=placeholder_text, textvariable=textvariable)
+                     width=100, placeholder_text=placeholder_text)
     entry.grid(column=1, row=order*2, sticky="e")
     return entry
 
