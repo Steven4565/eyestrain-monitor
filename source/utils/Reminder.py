@@ -5,8 +5,6 @@ from tkinter import *
 from os import environ
 from pygame import mixer
 
-# from source.utils.Overlay import OverlayInstance
-
 from source.utils.Config import AppConfig
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -21,14 +19,14 @@ app_icon = './assets/images/icon.ico'
 
 is_win10 = False
 
-if (sys.platform == 'win32' and sys.getwindowsversion().build <= 20000):
-    is_win10 = True
-    from win10toast_click import ToastNotifier
-    toaster = ToastNotifier()
+# if (sys.platform == 'win32' and sys.getwindowsversion().build <= 20000):
+is_win10 = True
+from win10toast_click import ToastNotifier
+toaster = ToastNotifier()
 
 
 class Reminder:
-
+    
     def remind_blink():
         reminder_config = AppConfig.cfg["activity"]["blink_reminder_type"]
         if reminder_config == "VOICE":
@@ -36,7 +34,7 @@ class Reminder:
         elif reminder_config == "VOICE_LONG":
             long_sound_blink.play()
         elif reminder_config == "VISUAL":
-            # OverlayInstance.remind_blink()
+            # AppGuiInstance.overlay.remind_blink()
             pass
 
     def remind_break():

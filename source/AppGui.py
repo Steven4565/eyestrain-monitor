@@ -12,12 +12,15 @@ from customtkinter import *
 from tkinter import *
 from PIL import ImageTk, Image
 
+from source.utils.Overlay import Overlay
+
 app_icon = './assets/images/icon.ico'
 
 
 class AppGui:
     # Declare variables & types
     root_tk: CTk
+    overlay: Toplevel
     video_canvas: CTkCanvas
     _height: int
     _width: int
@@ -34,6 +37,7 @@ class AppGui:
         set_appearance_mode("System")
         set_default_color_theme("blue")
         self.root_tk = CTk()
+        self.overlay = Overlay(self.root_tk,'./assets/images/blink.png','./assets/images/break.png')
         self._width = width
         self._height = height
         self.root_tk.resizable(False, False)
